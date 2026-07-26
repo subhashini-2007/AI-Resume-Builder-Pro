@@ -17,10 +17,16 @@ export function handleApiError(error: unknown) {
 
   const message = error instanceof Error ? error.message : "Internal Server Error";
   let status = 500;
-  if (message.startsWith("Unauthorized")) {
+  if (message.startsWith("Unauthorized") || message.toLowerCase().includes("credentials")) {
     status = 401;
   } else if (message.toLowerCase().includes("not found")) {
     status = 404;
+  } else if (
+    message.toLowerCase().includes("already exists") ||
+    message.toLowerCase().includes("invalid") ||
+    message.toLowerCase().includes("validation")
+  ) {
+    status = 400;
   }
   return NextResponse.json(
     {
