@@ -31,14 +31,19 @@ export const authService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password: passwordString }),
       });
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        return { success: false, error: `Server returned HTTP ${res.status}. Please try again.` };
+      }
       const data = await res.json();
       if (!data.success) {
-        return { success: false, error: data.error || "Login failed" };
+        return { success: false, error: data.error || "Invalid email or password." };
       }
       localStorage.setItem("auth_user", JSON.stringify(data.data));
       return { success: true };
-    } catch {
-      return { success: false, error: "A network error occurred. Please try again." };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "A network error occurred. Please try again.";
+      return { success: false, error: msg };
     }
   },
 
@@ -60,14 +65,19 @@ export const authService = {
           confirmPassword: confirmPasswordString,
         }),
       });
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        return { success: false, error: `Server returned HTTP ${res.status}. Please try again.` };
+      }
       const data = await res.json();
       if (!data.success) {
-        return { success: false, error: data.error || "Registration failed" };
+        return { success: false, error: data.error || "Registration failed." };
       }
       localStorage.setItem("auth_user", JSON.stringify(data.data));
       return { success: true };
-    } catch {
-      return { success: false, error: "A network error occurred. Please try again." };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "A network error occurred. Please try again.";
+      return { success: false, error: msg };
     }
   },
 
