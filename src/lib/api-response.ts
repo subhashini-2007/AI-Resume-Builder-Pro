@@ -3,35 +3,59 @@ import { ZodError } from "zod";
 import { verifyToken } from "@/lib/auth/jwt";
 
 export function handleApiError(error: unknown) {
-  console.error("API Error Logged:", error);
+  console.error("[API ERR] Error encountered:", error);
+
   if (error instanceof ZodError) {
+    const fieldErrors = error.flatten().fieldErrors;
+    console.warn("[Validation Status] Failed:", JSON.stringify(fieldErrors));
     return NextResponse.json(
       {
         success: false,
         error: "Validation Error",
-        details: error.flatten().fieldErrors,
+        details: fieldErrors,
       },
       { status: 400 }
     );
   }
 
-  const message = error instanceof Error ? error.message : "Internal Server Error";
+  const rawMessage = error instanceof Error ? error.message : String(error || "Internal Server Error");
   let status = 500;
-  if (message.startsWith("Unauthorized") || message.toLowerCase().includes("credentials")) {
+  let errorSummary = "Internal Server Error";
+  let details: string | undefined = rawMessage;
+
+  const isPrismaError =
+    rawMessage.includes("PrismaClient") ||
+    rawMessage.includes("prisma") ||
+    rawMessage.includes("Environment variable not found: DATABASE_URL") ||
+    rawMessage.includes("Can't reach database server");
+
+  if (isPrismaError) {
+    console.error("[DB ERR] Prisma/Database failure:", rawMessage);
+    errorSummary = "Database Connection Error";
+    details = process.env.NODE_ENV === "production"
+      ? "Unable to connect to PostgreSQL database. Verify DATABASE_URL in Vercel configuration."
+      : rawMessage;
+  } else if (rawMessage.startsWith("Unauthorized") || rawMessage.toLowerCase().includes("credentials")) {
+    console.warn("[Auth Error]:", rawMessage);
     status = 401;
-  } else if (message.toLowerCase().includes("not found")) {
+    errorSummary = "Authentication Required";
+  } else if (rawMessage.toLowerCase().includes("not found")) {
     status = 404;
+    errorSummary = "Resource Not Found";
   } else if (
-    message.toLowerCase().includes("already exists") ||
-    message.toLowerCase().includes("invalid") ||
-    message.toLowerCase().includes("validation")
+    rawMessage.toLowerCase().includes("already exists") ||
+    rawMessage.toLowerCase().includes("invalid") ||
+    rawMessage.toLowerCase().includes("validation")
   ) {
     status = 400;
+    errorSummary = "Invalid Request";
   }
+
   return NextResponse.json(
     {
       success: false,
-      error: message,
+      error: errorSummary,
+      details: details || rawMessage,
     },
     { status }
   );
