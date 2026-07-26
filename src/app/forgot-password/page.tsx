@@ -36,14 +36,15 @@ export default function ForgotPasswordPage() {
       } else {
         toast({
           title: "Request Failed",
-          description: json.error || "Could not request password recovery.",
+          description: json.error || json.message || "Could not request password recovery.",
           variant: "destructive",
         });
       }
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "An error occurred while connecting to the server.";
       toast({
         title: "Request Error",
-        description: "An unexpected error occurred. Please try again.",
+        description: msg,
         variant: "destructive",
       });
     } finally {
