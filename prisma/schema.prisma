@@ -1,0 +1,356 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+}
+
+enum DocumentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model User {
+  id           String        @id @default(uuid()) @db.Uuid
+  email        String        @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+
+  settings     UserSettings?
+  subscription Subscription?
+  resumes      Resume[]
+  coverLetters CoverLetter[]
+  aiHistory    AIHistory[]
+  notifications Notification[]
+  tasks        UserTask[]
+
+  @@index([email])
+}
+
+
+model UserSettings {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @unique @db.Uuid
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme              String   @default("system")
+  emailNotifications Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Subscription {
+  id               String             @id @default(uuid()) @db.Uuid
+  userId           String             @unique @db.Uuid
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan             Plan               @default(FREE)
+  status           SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([userId])
+}
+
+model Resume {
+  id               String           @id @default(uuid()) @db.Uuid
+  userId           String           @db.Uuid
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            String           @default("Untitled Resume")
+  summary          String           @default("")
+  fullName         String           @default("")
+  phone            String           @default("")
+  email            String           @default("")
+  location         String           @default("")
+  website          String           @default("")
+  avatar           String           @default("") @db.Text
+  selectedTemplate String           @default("ats-classic")
+  status           DocumentStatus   @default(DRAFT)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime?
+
+  versions         ResumeVersion[]
+  sections         ResumeSection[]
+  experiences      Experience[]
+  educations       Education[]
+  skills           Skill[]
+  projects         Project[]
+  certifications   Certification[]
+  languages        Language[]
+  awards           Award[]
+  interests        Interest[]
+  references       Reference[]
+  atsReports       ATSReport[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model ResumeVersion {
+  id        String   @id @default(uuid()) @db.Uuid
+  resumeId  String   @db.Uuid
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  title     String
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model ResumeSection {
+  id        String   @id @default(uuid()) @db.Uuid
+  resumeId  String   @db.Uuid
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  title     String
+  order     Int      @default(0)
+  isVisible Boolean  @default(true)
+  type      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model Experience {
+  id          String   @id @default(uuid()) @db.Uuid
+  resumeId    String   @db.Uuid
+  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  company     String
+  role        String
+  startDate   String
+  endDate     String
+  description String
+  isCurrent   Boolean  @default(false)
+  location    String   @default("")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model Education {
+  id           String   @id @default(uuid()) @db.Uuid
+  resumeId     String   @db.Uuid
+  resume       Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  school       String
+  degree       String
+  fieldOfStudy String   @default("")
+  startDate    String
+  endDate      String
+  grade        String   @default("")
+  description  String   @default("")
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model Skill {
+  id        String   @id @default(uuid()) @db.Uuid
+  resumeId  String   @db.Uuid
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  name      String
+  level     String   @default("Intermediate")
+  category  String   @default("")
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model Project {
+  id          String   @id @default(uuid()) @db.Uuid
+  resumeId    String   @db.Uuid
+  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  role        String   @default("")
+  url         String   @default("")
+  startDate   String   @default("")
+  endDate     String   @default("")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model Certification {
+  id         String   @id @default(uuid()) @db.Uuid
+  resumeId   String   @db.Uuid
+  resume     Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  name       String
+  issuer     String
+  issueDate  String   @default("")
+  expiryDate String   @default("")
+  url        String   @default("")
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model Language {
+  id          String   @id @default(uuid()) @db.Uuid
+  resumeId    String   @db.Uuid
+  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  name        String
+  proficiency String   @default("Full Professional")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model Award {
+  id          String   @id @default(uuid()) @db.Uuid
+  resumeId    String   @db.Uuid
+  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  title       String
+  issuer      String
+  date        String
+  description String   @default("")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model Interest {
+  id        String   @id @default(uuid()) @db.Uuid
+  resumeId  String   @db.Uuid
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  name      String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model Reference {
+  id        String   @id @default(uuid()) @db.Uuid
+  resumeId  String   @db.Uuid
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  name      String
+  title     String
+  company   String
+  email     String   @default("")
+  phone     String   @default("")
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model ResumeTemplate {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  category  String
+  styles    Json
+  config    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
+model CoverLetter {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobTitle  String
+  company   String
+  body      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([userId])
+}
+
+model ATSReport {
+  id        String   @id @default(uuid()) @db.Uuid
+  resumeId  String   @db.Uuid
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  jobTitle  String
+  score     Int
+  details   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+}
+
+model AIHistory {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  actionType String
+  prompt     String
+  response   String
+  creditsUsed Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  type      String   @default("info")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+model UserTask {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  status    String   // "Completed" | "In Progress" | "Upcoming"
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, title])
+  @@index([userId])
+}
+

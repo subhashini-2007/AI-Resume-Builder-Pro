@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">AI Resume Builder Pro</string>
+    <string name="title_activity_main">AI Resume Builder Pro</string>
+    <string name="package_name">com.airesumebuilder.pro</string>
+    <string name="custom_url_scheme">com.airesumebuilder.pro</string>
+</resources>

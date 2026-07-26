@@ -1,0 +1,20 @@
+{
+  "appId": "com.airesumebuilder.pro",
+  "appName": "AI Resume Builder Pro",
+  "webDir": "public",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://ai-resume-builder-pro.vercel.app",
+    "androidScheme": "https",
+    "cleartext": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#090d16",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    }
+  }
+}
