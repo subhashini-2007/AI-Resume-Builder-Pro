@@ -4,6 +4,8 @@ import { atsReportSchema } from "@/lib/validation/schemas";
 import { AtsService } from "@/services/db/ats";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const userId = await getSessionUser(request);

@@ -3,6 +3,8 @@ import { handleApiError, handleApiSuccess, getSessionUser } from "@/lib/api-resp
 import { coverLetterSchema } from "@/lib/validation/schemas";
 import { CoverLetterService } from "@/services/db/cover-letter";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const userId = await getSessionUser(request);

@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 const aiCache = new Map<string, { responseText: string; timestamp: number }>();
 const CACHE_TTL_MS = 15 * 60 * 1000;
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     const userId = await getSessionUser(request);

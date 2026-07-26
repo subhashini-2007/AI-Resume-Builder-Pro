@@ -3,6 +3,8 @@ import { handleApiError, handleApiSuccess, getSessionUser } from "@/lib/api-resp
 import { resumeUpsertSchema } from "@/lib/validation/schemas";
 import { ResumeService } from "@/services/db/resume";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = await getSessionUser(request);
