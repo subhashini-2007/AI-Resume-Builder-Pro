@@ -25,7 +25,16 @@ export default function ForgotPasswordPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      const json = await res.json();
+      const contentType = res.headers.get("content-type") || "";
+      let json: { success?: boolean; error?: string; message?: string } = {};
+      if (contentType.includes("application/json")) {
+        json = await res.json();
+      } else {
+        const text = await res.text();
+        console.error("Server HTML response:", text);
+        throw new Error(`Server returned status ${res.status}. Please ensure Vercel environment variables are saved.`);
+      }
+
       if (json.success) {
         setSubmitted(true);
         toast({
