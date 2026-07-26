@@ -1,7 +1,6 @@
-import { NextRequest } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
-import { handleApiSuccess, handleApiError } from "@/lib/api-response";
 import { z } from "zod";
 
 const forgotPasswordSchema = z.object({
