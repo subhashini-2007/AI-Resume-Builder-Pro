@@ -8,6 +8,8 @@ const forgotPasswordSchema = z.object({
   email: z.string().email(),
 });
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -33,16 +35,29 @@ export async function POST(request: NextRequest) {
       { expiresIn: "15m" }
     );
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    // Determine production domain dynamically if NEXT_PUBLIC_APP_URL is not set or points to localhost
+    const originHeader = request.headers.get("origin") || request.headers.get("referer");
+    let appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl || appUrl.includes("localhost")) {
+      if (originHeader) {
+        try {
+          appUrl = new URL(originHeader).origin;
+        } catch {
+          appUrl = "https://ai-resume-builder-pro.vercel.app";
+        }
+      } else {
+        appUrl = "https://ai-resume-builder-pro.vercel.app";
+      }
+    }
     const resetLink = `${appUrl}/reset-password?token=${token}`;
 
     const resendApiKey = process.env.RESEND_API_KEY;
     if (!resendApiKey) {
-      throw new Error("Email delivery failed: RESEND_API_KEY environment variable is not defined.");
+      throw new Error("Email delivery failed: RESEND_API_KEY environment variable is not defined on Vercel.");
     }
 
     const emailPayload = {
-      from: "Resume Builder <onboarding@resend.dev>",
+      from: "AI Resume Builder <onboarding@resend.dev>",
       to: [email],
       subject: "Reset your Workspace Password",
       html: `
