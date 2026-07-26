@@ -6,7 +6,7 @@ function getSanitizedDatabaseUrl(): string | undefined {
   const dbUrl = process.env.DATABASE_URL;
   if (!dbUrl) return undefined;
   // Remove unsupported serverless parameter channel_binding=require if present
-  return dbUrl.replace(/[\?&]channel_binding=require/g, "");
+  return dbUrl.replace(/[?&]channel_binding=require/g, "");
 }
 
 const sanitizedUrl = getSanitizedDatabaseUrl();
