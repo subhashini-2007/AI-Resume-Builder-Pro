@@ -1,7 +1,14 @@
 import jwt from "jsonwebtoken";
 
 const getJwtSecret = (): string => {
-  return process.env.JWT_SECRET || "fallback_jwt_secret_after_auth_reset_2026_v2";
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("FATAL: JWT_SECRET environment variable is missing in production!");
+    }
+    return "fallback_jwt_secret_after_auth_reset_2026_v2";
+  }
+  return secret;
 };
 
 export interface JWTPayload {

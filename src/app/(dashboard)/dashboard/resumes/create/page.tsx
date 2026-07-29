@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 
 import * as React from "react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -56,18 +56,53 @@ interface DBSkill {
   name: string;
 }
 
+interface DBProject {
+  id?: string;
+  name?: string;
+  description?: string;
+  role?: string;
+  url?: string;
+  startDate?: string;
+  endDate?: string;
+  projectType?: string;
+  duration?: string;
+  technologies?: string;
+  responsibilities?: string;
+  keyFeatures?: string[];
+  achievements?: string[];
+  githubUrl?: string;
+  liveUrl?: string;
+  teamSize?: string;
+  clientName?: string;
+  status?: string;
+}
+
 interface DBResumeData {
+  id?: string;
   fullName?: string;
+  title?: string;
   email?: string;
   phone?: string;
   location?: string;
   website?: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
+  portfolioUrl?: string;
+  leetcodeUrl?: string;
+  hackerrankUrl?: string;
+  kaggleUrl?: string;
+  mediumUrl?: string;
+  stackoverflowUrl?: string;
+  behanceUrl?: string;
+  dribbbleUrl?: string;
+  otherLinkUrl?: string;
   avatar?: string;
   summary?: string;
   selectedTemplate?: string;
   experiences?: DBExperience[];
   educations?: DBEducation[];
   skills?: DBSkill[];
+  projects?: DBProject[];
 }
 
 interface DBVersionItem {
@@ -127,7 +162,7 @@ export default function CreateResumePage() {
   const { toast } = useToast();
 
   const [activeTab, setActiveTab] = React.useState<
-    "personal" | "experience" | "education" | "skills" | "customization" | "history"
+    "personal" | "experience" | "projects" | "education" | "skills" | "customization" | "history"
   >("personal");
   const [selectedTemplate, setSelectedTemplate] = React.useState("ats-classic");
   const [customization, setCustomization] = React.useState<ResumeCustomization>({
@@ -258,21 +293,21 @@ export default function CreateResumePage() {
               phone: fetched.phone || "",
               location: fetched.location || "",
               website: fetched.website || "",
-              linkedinUrl: (fetched as any).linkedinUrl || "",
-              githubUrl: (fetched as any).githubUrl || "",
-              portfolioUrl: (fetched as any).portfolioUrl || "",
-              leetcodeUrl: (fetched as any).leetcodeUrl || "",
-              hackerrankUrl: (fetched as any).hackerrankUrl || "",
-              kaggleUrl: (fetched as any).kaggleUrl || "",
-              mediumUrl: (fetched as any).mediumUrl || "",
-              stackoverflowUrl: (fetched as any).stackoverflowUrl || "",
-              behanceUrl: (fetched as any).behanceUrl || "",
-              dribbbleUrl: (fetched as any).dribbbleUrl || "",
-              otherLinkUrl: (fetched as any).otherLinkUrl || "",
+              linkedinUrl: fetched.linkedinUrl || "",
+              githubUrl: fetched.githubUrl || "",
+              portfolioUrl: fetched.portfolioUrl || "",
+              leetcodeUrl: fetched.leetcodeUrl || "",
+              hackerrankUrl: fetched.hackerrankUrl || "",
+              kaggleUrl: fetched.kaggleUrl || "",
+              mediumUrl: fetched.mediumUrl || "",
+              stackoverflowUrl: fetched.stackoverflowUrl || "",
+              behanceUrl: fetched.behanceUrl || "",
+              dribbbleUrl: fetched.dribbbleUrl || "",
+              otherLinkUrl: fetched.otherLinkUrl || "",
               avatar: fetched.avatar || "",
               summary: fetched.summary || "",
             },
-            experiences: (fetched.experiences || []).map((e: any) => ({
+            experiences: (fetched.experiences || []).map((e: DBExperience) => ({
               id: e.id,
               company: e.company || "",
               role: e.role || "",
@@ -280,15 +315,15 @@ export default function CreateResumePage() {
               endDate: e.endDate || "",
               description: e.description || "",
             })),
-            educations: (fetched.educations || []).map((edu: any) => ({
+            educations: (fetched.educations || []).map((edu: DBEducation) => ({
               id: edu.id,
               school: edu.school || "",
               degree: edu.degree || "",
               startDate: edu.startDate || "",
               endDate: edu.endDate || "",
             })),
-            skills: (fetched.skills || []).map((s: any) => s.name),
-            projects: (fetched.projects || []).map((p: any) => ({
+            skills: (fetched.skills || []).map((s: DBSkill) => s.name),
+            projects: (fetched.projects || []).map((p: DBProject) => ({
               id: p.id,
               name: p.name || "",
               description: p.description || "",
@@ -315,10 +350,10 @@ export default function CreateResumePage() {
             if (parts[1]) {
               const params = new URLSearchParams(parts[1]);
               setCustomization({
-                fontFamily: (params.get("fontFamily") as any) || "sans",
-                fontSize: (params.get("fontSize") as any) || "md",
-                lineSpacing: (params.get("lineSpacing") as any) || "normal",
-                margins: (params.get("margins") as any) || "normal",
+                fontFamily: (params.get("fontFamily") as "sans" | "serif" | "mono") || "sans",
+                fontSize: (params.get("fontSize") as "sm" | "md" | "lg") || "md",
+                lineSpacing: (params.get("lineSpacing") as "tight" | "normal" | "loose") || "normal",
+                margins: (params.get("margins") as "compact" | "normal" | "wide") || "normal",
                 themeColor: params.get("themeColor") || "#2563eb",
               });
             }
@@ -725,6 +760,13 @@ export default function CreateResumePage() {
     list[index] = list[target];
     list[target] = temp;
     updateData({ ...data, projects: list });
+  };
+
+  const toggleProjectCollapse = (projId: string) => {
+    setCollapsedProjects((prev) => ({
+      ...prev,
+      [projId]: !prev[projId],
+    }));
   };
 
   // Manual save trigger
@@ -1329,7 +1371,8 @@ export default function CreateResumePage() {
           <div className="min-h-[300px] flex-1">
             {/* Tab 1: Personal Details */}
             {activeTab === "personal" && (
-              <Card className="glassmorphism">
+              <>
+                <Card className="glassmorphism">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-sm font-bold">
                     <User className="h-4 w-4 text-primary" />
@@ -1720,7 +1763,8 @@ export default function CreateResumePage() {
                   </CardContent>
                 )}
               </Card>
-            )}
+            </>
+          )}
 
             {/* Tab 2: Work Experience */}
             {activeTab === "experience" && (

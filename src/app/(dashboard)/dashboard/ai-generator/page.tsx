@@ -43,6 +43,11 @@ const AI_ACTIONS = [
   { value: "Custom Rewrite", label: "Custom Polish / Rewrite" }
 ];
 
+interface MiniResume {
+  id: string;
+  title?: string;
+}
+
 export default function AiGeneratorPage() {
   const { toast } = useToast();
   const [prompt, setPrompt] = React.useState("");
@@ -50,7 +55,7 @@ export default function AiGeneratorPage() {
   const [writingStyle, setWritingStyle] = React.useState("Professional");
   const [experienceLevel, setExperienceLevel] = React.useState("Mid Level");
   const [selectedResumeId, setSelectedResumeId] = React.useState("");
-  const [resumes, setResumes] = React.useState<any[]>([]);
+  const [resumes, setResumes] = React.useState<MiniResume[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [response, setResponse] = React.useState<string | null>(null);
   const [copied, setCopied] = React.useState(false);
@@ -255,7 +260,7 @@ export default function AiGeneratorPage() {
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
                     Load Resume Context
-                    <Info className="h-3 w-3 text-muted-foreground" title="Feeds your resume details to the AI for factual recommendations." />
+                    <Info className="h-3 w-3 text-muted-foreground" />
                   </label>
                   <select
                     className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"

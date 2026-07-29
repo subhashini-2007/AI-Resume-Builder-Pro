@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { handleApiError, handleApiSuccess, getSessionUser } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
+import { Experience, Skill, Project } from "@prisma/client";
 
 // 15-minute in-memory cache for duplicate AI tasks/prompts
 const aiCache = new Map<string, { responseText: string; timestamp: number }>();
@@ -78,9 +79,9 @@ User's Resume Context:
 - Full Name: ${resume.fullName || ""}
 - Title: ${resume.title || ""}
 - Summary: ${resume.summary || ""}
-- Skills: ${(resume.skills || []).map((s: any) => s.name).join(", ")}
-- Experiences: ${(resume.experiences || []).map((e: any) => `${e.role} at ${e.company} (${e.startDate} - ${e.endDate}): ${e.description}`).join(" | ")}
-- Projects: ${(resume.projects || []).map((p: any) => `${p.name} (${p.projectType}): ${p.description}. Tech: ${p.technologies || ""}`).join(" | ")}
+- Skills: ${(resume.skills || []).map((s: Skill) => s.name).join(", ")}
+- Experiences: ${(resume.experiences || []).map((e: Experience) => `${e.role} at ${e.company} (${e.startDate} - ${e.endDate}): ${e.description}`).join(" | ")}
+- Projects: ${(resume.projects || []).map((p: Project) => `${p.name} (${p.projectType}): ${p.description}. Tech: ${p.technologies || ""}`).join(" | ")}
 `;
         }
       }
