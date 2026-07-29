@@ -19,6 +19,13 @@ export interface ResumeData {
     stackoverflowUrl?: string;
     behanceUrl?: string;
     dribbbleUrl?: string;
+    twitterUrl?: string;
+    youtubeUrl?: string;
+    devtoUrl?: string;
+    researchgateUrl?: string;
+    orcidUrl?: string;
+    googleScholarUrl?: string;
+    otherLinkLabel?: string;
     otherLinkUrl?: string;
     avatar: string; // Base64 image
     summary: string;
@@ -37,6 +44,8 @@ export interface ResumeData {
     degree: string;
     startDate: string;
     endDate: string;
+    fieldOfStudy?: string;
+    grade?: string;
   }>;
   skills: string[];
   projects?: Array<{
@@ -55,9 +64,42 @@ export interface ResumeData {
     achievements?: string[];
     githubUrl?: string;
     liveUrl?: string;
+    documentationUrl?: string;
     teamSize?: string;
     clientName?: string;
     status?: string;
+  }>;
+  certifications?: Array<{
+    id: string;
+    name: string;
+    issuer: string;
+    issueDate?: string;
+    expiryDate?: string;
+    url?: string;
+  }>;
+  languages?: Array<{
+    id: string;
+    name: string;
+    proficiency: string;
+  }>;
+  awards?: Array<{
+    id: string;
+    title: string;
+    issuer: string;
+    date: string;
+    description?: string;
+  }>;
+  interests?: Array<{
+    id: string;
+    name: string;
+  }>;
+  references?: Array<{
+    id: string;
+    name: string;
+    title?: string;
+    company: string;
+    email: string;
+    phone?: string;
   }>;
 }
 
@@ -123,7 +165,13 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
       { url: personalInfo.stackoverflowUrl, label: "StackOverflow", icon: "💬" },
       { url: personalInfo.behanceUrl, label: "Behance", icon: "🎨" },
       { url: personalInfo.dribbbleUrl, label: "Dribbble", icon: "🏀" },
-      { url: personalInfo.otherLinkUrl, label: "Link", icon: "🔗" },
+      { url: personalInfo.twitterUrl, label: "Twitter", icon: "🐦" },
+      { url: personalInfo.youtubeUrl, label: "YouTube", icon: "📺" },
+      { url: personalInfo.devtoUrl, label: "Dev.to", icon: "💻" },
+      { url: personalInfo.researchgateUrl, label: "ResearchGate", icon: "🔬" },
+      { url: personalInfo.orcidUrl, label: "ORCID", icon: "🆔" },
+      { url: personalInfo.googleScholarUrl, label: "Scholar", icon: "🎓" },
+      { url: personalInfo.otherLinkUrl, label: personalInfo.otherLinkLabel || "Link", icon: "🔗" },
     ].filter((p) => p.url);
 
     if (profiles.length === 0) return null;
@@ -160,7 +208,13 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
       { url: personalInfo.stackoverflowUrl, label: "StackOverflow", icon: "💬" },
       { url: personalInfo.behanceUrl, label: "Behance", icon: "🎨" },
       { url: personalInfo.dribbbleUrl, label: "Dribbble", icon: "🏀" },
-      { url: personalInfo.otherLinkUrl, label: "Link", icon: "🔗" },
+      { url: personalInfo.twitterUrl, label: "Twitter", icon: "🐦" },
+      { url: personalInfo.youtubeUrl, label: "YouTube", icon: "📺" },
+      { url: personalInfo.devtoUrl, label: "Dev.to", icon: "💻" },
+      { url: personalInfo.researchgateUrl, label: "ResearchGate", icon: "🔬" },
+      { url: personalInfo.orcidUrl, label: "ORCID", icon: "🆔" },
+      { url: personalInfo.googleScholarUrl, label: "Scholar", icon: "🎓" },
+      { url: personalInfo.otherLinkUrl, label: personalInfo.otherLinkLabel || "Link", icon: "🔗" },
     ].filter((p) => p.url);
 
     if (profiles.length === 0) return null;
@@ -275,8 +329,8 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
                 </div>
               )}
 
-              {/* Repository & Live Demo links */}
-              {(proj.githubUrl || proj.liveUrl) && (
+              {/* Repository & Live Demo & Documentation links */}
+              {(proj.githubUrl || proj.liveUrl || proj.documentationUrl) && (
                 <div className="mt-2 flex gap-4 text-[10px]">
                   {proj.githubUrl && (
                     <a href={proj.githubUrl} target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold flex items-center gap-1" style={{ color: accentColor }}>
@@ -286,6 +340,11 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
                   {proj.liveUrl && (
                     <a href={proj.liveUrl} target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold flex items-center gap-1" style={{ color: accentColor }}>
                       Live Demo 🚀
+                    </a>
+                  )}
+                  {proj.documentationUrl && (
+                    <a href={proj.documentationUrl} target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold flex items-center gap-1" style={{ color: accentColor }}>
+                      Docs 📄
                     </a>
                   )}
                 </div>

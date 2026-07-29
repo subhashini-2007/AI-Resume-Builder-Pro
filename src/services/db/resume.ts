@@ -45,6 +45,7 @@ interface ProjectInput {
   achievements?: string[];
   githubUrl?: string;
   liveUrl?: string;
+  documentationUrl?: string;
   teamSize?: string;
   clientName?: string;
   status?: string;
@@ -269,6 +270,13 @@ export class ResumeService {
           stackoverflowUrl: data.stackoverflowUrl || "",
           behanceUrl: data.behanceUrl || "",
           dribbbleUrl: data.dribbbleUrl || "",
+          twitterUrl: data.twitterUrl || "",
+          youtubeUrl: data.youtubeUrl || "",
+          devtoUrl: data.devtoUrl || "",
+          researchgateUrl: data.researchgateUrl || "",
+          orcidUrl: data.orcidUrl || "",
+          googleScholarUrl: data.googleScholarUrl || "",
+          otherLinkLabel: data.otherLinkLabel || "",
           otherLinkUrl: data.otherLinkUrl || "",
           avatar,
           selectedTemplate,
@@ -321,6 +329,7 @@ export class ResumeService {
               achievements: proj.achievements || [],
               githubUrl: proj.githubUrl || "",
               liveUrl: proj.liveUrl || "",
+              documentationUrl: proj.documentationUrl || "",
               teamSize: proj.teamSize || "",
               clientName: proj.clientName || "",
               status: proj.status || "Completed",

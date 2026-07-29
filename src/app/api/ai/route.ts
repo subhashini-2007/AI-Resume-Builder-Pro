@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { handleApiError, handleApiSuccess, getSessionUser } from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
-import { Experience, Skill, Project } from "@prisma/client";
+import { Experience, Skill, Project, Certification, Education } from "@prisma/client";
 
 // 15-minute in-memory cache for duplicate AI tasks/prompts
 const aiCache = new Map<string, { responseText: string; timestamp: number }>();
@@ -71,17 +71,55 @@ export async function POST(request: NextRequest) {
             educations: { orderBy: { order: "asc" } },
             skills: { orderBy: { order: "asc" } },
             projects: { orderBy: { order: "asc" } },
+            certifications: { orderBy: { order: "asc" } },
           },
         });
         if (resume) {
+          const profiles = [
+            resume.linkedinUrl && `LinkedIn: ${resume.linkedinUrl}`,
+            resume.githubUrl && `GitHub: ${resume.githubUrl}`,
+            resume.portfolioUrl && `Portfolio: ${resume.portfolioUrl}`,
+            resume.leetcodeUrl && `LeetCode: ${resume.leetcodeUrl}`,
+            resume.hackerrankUrl && `HackerRank: ${resume.hackerrankUrl}`,
+            resume.kaggleUrl && `Kaggle: ${resume.kaggleUrl}`,
+            resume.mediumUrl && `Medium: ${resume.mediumUrl}`,
+            resume.stackoverflowUrl && `StackOverflow: ${resume.stackoverflowUrl}`,
+            resume.behanceUrl && `Behance: ${resume.behanceUrl}`,
+            resume.dribbbleUrl && `Dribbble: ${resume.dribbbleUrl}`,
+            resume.twitterUrl && `X (Twitter): ${resume.twitterUrl}`,
+            resume.youtubeUrl && `YouTube: ${resume.youtubeUrl}`,
+            resume.devtoUrl && `Dev.to: ${resume.devtoUrl}`,
+            resume.researchgateUrl && `ResearchGate: ${resume.researchgateUrl}`,
+            resume.orcidUrl && `ORCID: ${resume.orcidUrl}`,
+            resume.googleScholarUrl && `Google Scholar: ${resume.googleScholarUrl}`,
+            resume.otherLinkUrl && `${resume.otherLinkLabel || "Other Link"}: ${resume.otherLinkUrl}`,
+          ].filter(Boolean).join(", ");
+
           contextString = `
 User's Resume Context:
 - Full Name: ${resume.fullName || ""}
 - Title: ${resume.title || ""}
 - Summary: ${resume.summary || ""}
-- Skills: ${(resume.skills || []).map((s: Skill) => s.name).join(", ")}
+- Professional Profiles: ${profiles || "None"}
+- Skills: ${(resume.skills || []).map((s: Skill) => `${s.name} (${s.level || "N/A"})`).join(", ")}
 - Experiences: ${(resume.experiences || []).map((e: Experience) => `${e.role} at ${e.company} (${e.startDate} - ${e.endDate}): ${e.description}`).join(" | ")}
-- Projects: ${(resume.projects || []).map((p: Project) => `${p.name} (${p.projectType}): ${p.description}. Tech: ${p.technologies || ""}`).join(" | ")}
+- Educations: ${(resume.educations || []).map((edu: Education) => `${edu.degree} from ${edu.school} (${edu.startDate} - ${edu.endDate})`).join(" | ")}
+- Projects: ${(resume.projects || []).map((p: Project) => {
+            return `Project Name: ${p.name}
+Role: ${p.role || "N/A"}
+Type: ${p.projectType || "N/A"}
+Client: ${p.clientName || "N/A"}
+Team Size: ${p.teamSize || "N/A"}
+Duration: ${p.duration || "N/A"}
+Status: ${p.status || "N/A"}
+Tech: ${p.technologies || "N/A"}
+Description: ${p.description || "N/A"}
+Responsibilities: ${p.responsibilities || "N/A"}
+Key Features: ${(p.keyFeatures || []).join("; ")}
+Achievements: ${(p.achievements || []).join("; ")}
+URLs: GitHub: ${p.githubUrl || "N/A"}, Live: ${p.liveUrl || "N/A"}, Documentation: ${p.documentationUrl || "N/A"}`;
+          }).join("\n---\n")}
+- Certifications: ${(resume.certifications || []).map((c: Certification) => `${c.name} issued by ${c.issuer} (${c.issueDate || "N/A"})`).join(", ")}
 `;
         }
       }
