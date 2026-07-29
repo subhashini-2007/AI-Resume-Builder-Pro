@@ -7,6 +7,7 @@ export function middleware(request: NextRequest) {
     const token = request.cookies.get("session_token")?.value;
 
     const isDashboardRoute = pathname.startsWith("/dashboard");
+    const isPublicDashboardRoute = pathname.startsWith("/templates");
     const isApiProtectedRoute =
       pathname.startsWith("/api/resumes") ||
       pathname.startsWith("/api/settings") ||
@@ -15,7 +16,7 @@ export function middleware(request: NextRequest) {
       pathname.startsWith("/api/notifications");
     const isAuthRoute = pathname === "/login" || pathname === "/register";
 
-    if ((isDashboardRoute || isApiProtectedRoute) && !token) {
+    if (((isDashboardRoute && !isPublicDashboardRoute) || isApiProtectedRoute) && !token) {
       if (isApiProtectedRoute) {
         return NextResponse.json(
           { success: false, error: "Unauthorized: Missing session token" },

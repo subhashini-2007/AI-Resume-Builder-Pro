@@ -16,12 +16,13 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    // Perform verification checks
+    // Perform verification checks, allowing public dashboard pages like templates
     function verifySession() {
       const authenticated = authService.isAuthenticated();
       const isDashboardRoute = pathname.startsWith("/dashboard");
+      const isPublicDashboardRoute = pathname.startsWith("/templates");
 
-      if (isDashboardRoute && !authenticated) {
+      if (isDashboardRoute && !isPublicDashboardRoute && !authenticated) {
         setAuthorized(false);
         router.push("/login");
       } else {

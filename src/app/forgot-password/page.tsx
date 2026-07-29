@@ -32,7 +32,9 @@ export default function ForgotPasswordPage() {
       } else {
         const text = await res.text();
         console.error("Server HTML response:", text);
-        throw new Error(`Server returned status ${res.status}. Please ensure Vercel environment variables are saved.`);
+        throw new Error(
+          `Server returned status ${res.status}. Please ensure environment variables are configured.`
+        );
       }
 
       if (json.success) {
@@ -50,7 +52,8 @@ export default function ForgotPasswordPage() {
         });
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "An error occurred while connecting to the server.";
+      const msg =
+        err instanceof Error ? err.message : "An error occurred while connecting to the server.";
       toast({
         title: "Request Error",
         description: msg,
@@ -85,8 +88,8 @@ export default function ForgotPasswordPage() {
                   </div>
                   <h3 className="mb-2 text-lg font-bold">Check Your Inbox</h3>
                   <p className="mx-auto mb-6 max-w-xs text-xs leading-relaxed text-muted-foreground">
-                    We sent password recovery instructions to **{email}**. Click the link in the
-                    email to set a new password.
+                    We sent password recovery instructions to <strong>{email}</strong>. Click the
+                    link in the email to set a new password.
                   </p>
                   <Button variant="outline" className="w-full" onClick={() => setSubmitted(false)}>
                     Resend email instructions

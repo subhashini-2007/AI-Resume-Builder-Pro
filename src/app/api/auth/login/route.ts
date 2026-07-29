@@ -8,19 +8,35 @@ import { setSessionCookie } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
+const DEV = process.env.NODE_ENV === "development";
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const validated = loginSchema.parse(body);
 
-    // 1. Fetch user by email
+    // 1. Fetch user by email (case-insensitive, normalised to lowercase)
     const user = await UserService.findByEmail(validated.email);
+
+    if (DEV) {
+      if (user) {
+        console.log(`[Login Debug] ✓ user found: id=${user.id} email=${user.email}`);
+      } else {
+        console.log(`[Login Debug] ✗ user NOT found for email: ${validated.email.toLowerCase().trim()}`);
+      }
+    }
+
     if (!user) {
       throw new Error("Unauthorized: Invalid email or password credentials.");
     }
 
-    // 2. Compare password hashes
+    // 2. Compare plaintext password against stored bcrypt hash
     const isPasswordValid = await comparePassword(validated.password, user.passwordHash);
+
+    if (DEV) {
+      console.log(`[Login Debug] ✓ password compare result: ${isPasswordValid}`);
+    }
+
     if (!isPasswordValid) {
       throw new Error("Unauthorized: Invalid email or password credentials.");
     }
@@ -28,8 +44,16 @@ export async function POST(request: NextRequest) {
     // 3. Sign JWT token
     const token = signToken({ userId: user.id, email: user.email });
 
-    // 4. Save HTTP-only cookie
+    if (DEV) {
+      console.log(`[Login Debug] ✓ JWT created for userId=${user.id}`);
+    }
+
+    // 4. Save HTTP-only session cookie
     await setSessionCookie(token);
+
+    if (DEV) {
+      console.log(`[Login Debug] ✓ session cookie written`);
+    }
 
     // 5. Return user details safely
     return handleApiSuccess({

@@ -2,41 +2,56 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/layouts/main-layout";
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ShieldCheck, ArrowLeft, RefreshCw } from "lucide-react";
-import { useToast } from "@/components/ui/toast";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, XCircle, Loader2, Mail } from "lucide-react";
+
+type Status = "loading" | "success" | "error" | "idle";
 
 export default function VerifyEmailPage() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [code, setCode] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") ?? "";
+  const email = searchParams.get("email") ?? "";
 
-  const handleVerify = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (code.length < 4) {
-      toast({
-        title: "Invalid Code",
-        description: "Please enter a valid 4-digit code.",
-        variant: "destructive",
-      });
+  const [status, setStatus] = React.useState<Status>("idle");
+  const [message, setMessage] = React.useState("");
+
+  const handleVerify = React.useCallback(async () => {
+    if (!token || !email) {
+      setStatus("error");
+      setMessage("Invalid verification link. Please request a new one.");
       return;
     }
-    setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      toast({
-        title: "Account Verified!",
-        description: "Your email has been confirmed. Redirecting to login...",
-        variant: "success",
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/auth/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, email }),
       });
-      router.push("/login");
-    }, 1000);
-  };
+      const json = await res.json();
+
+      if (json.success) {
+        setStatus("success");
+        setMessage("Your email address has been verified successfully!");
+      } else {
+        setStatus("error");
+        setMessage(json.error || "Verification failed. The link may be expired.");
+      }
+    } catch {
+      setStatus("error");
+      setMessage("A network error occurred. Please try again.");
+    }
+  }, [token, email]);
+
+  React.useEffect(() => {
+    if (token && email) {
+      handleVerify();
+    }
+  }, [token, email, handleVerify]);
 
   return (
     <MainLayout>
@@ -47,56 +62,58 @@ export default function VerifyEmailPage() {
           <Card className="glassmorphism border-border/50">
             <CardHeader className="pb-4 text-center">
               <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-primary to-violet-500 text-primary-foreground">
-                <ShieldCheck className="h-5 w-5" />
+                <Mail className="h-5 w-5" />
               </div>
-              <CardTitle className="text-2xl font-bold tracking-tight">Verify Email</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Confirm your verification OTP code
-              </p>
+              <CardTitle className="text-2xl font-bold tracking-tight">Email Verification</CardTitle>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleVerify} className="space-y-4">
-                <div className="mb-4 space-y-2 text-center">
-                  <p className="text-xs leading-relaxed text-muted-foreground">
-                    We sent a 4-digit confirmation code to your registered email address. Please
-                    input it below to complete registration.
+            <CardContent className="py-6 text-center">
+              {status === "loading" && (
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground">Verifying your email…</p>
+                </div>
+              )}
+
+              {status === "success" && (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
+                    <CheckCircle2 className="h-7 w-7 text-emerald-500" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground">Email Verified!</h3>
+                  <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">{message}</p>
+                  <Link href="/login">
+                    <Button className="mt-2">Sign In Now</Button>
+                  </Link>
+                </div>
+              )}
+
+              {status === "error" && (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+                    <XCircle className="h-7 w-7 text-destructive" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground">Verification Failed</h3>
+                  <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">{message}</p>
+                  <div className="flex flex-col gap-2 pt-2">
+                    <Link href="/login">
+                      <Button variant="outline" className="w-full">
+                        Back to Sign In
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {status === "idle" && (
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    No verification token found in the link.
                   </p>
+                  <Link href="/login">
+                    <Button variant="outline">Back to Sign In</Button>
+                  </Link>
                 </div>
-
-                <div className="space-y-1">
-                  <input
-                    id="code"
-                    type="text"
-                    required
-                    maxLength={4}
-                    className="w-full rounded-md border border-border bg-background/50 px-3 py-2.5 text-center text-lg font-extrabold tracking-[1em] transition-colors focus:border-primary focus:outline-none"
-                    placeholder="0000"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                  />
-                </div>
-
-                <Button type="submit" className="mt-4 w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      Verifying Code...
-                    </>
-                  ) : (
-                    "Verify & Continue"
-                  )}
-                </Button>
-              </form>
-
-              <div className="mt-6 text-center">
-                <Link
-                  href="/login"
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Back to login
-                </Link>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>

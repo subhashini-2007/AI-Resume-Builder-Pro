@@ -2,10 +2,19 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
 
 export class UserService {
+  /**
+   * Find a user by email (case-insensitive, non-deleted only).
+   * Always normalises the email to lowercase before querying so that
+   * "User@Example.com" and "user@example.com" resolve to the same account.
+   */
   static async findByEmail(email: string) {
+    const normalised = email.toLowerCase().trim();
     return prisma.user.findFirst({
       where: {
-        email,
+        email: {
+          equals: normalised,
+          mode: "insensitive",
+        },
         deletedAt: null,
       },
       include: {
@@ -29,7 +38,9 @@ export class UserService {
   }
 
   static async registerUser(email: string, passwordPlain: string, name: string) {
-    const existing = await this.findByEmail(email);
+    const normalised = email.toLowerCase().trim();
+
+    const existing = await this.findByEmail(normalised);
     if (existing) {
       throw new Error("A user with this email address already exists.");
     }
@@ -38,7 +49,7 @@ export class UserService {
 
     return prisma.user.create({
       data: {
-        email,
+        email: normalised,          // always store lowercase
         passwordHash,
         name,
         settings: {

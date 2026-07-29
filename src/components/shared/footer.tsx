@@ -71,7 +71,7 @@ export function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="/dashboard/templates"
+                    href="/templates"
                     className="transition-colors hover:text-foreground"
                   >
                     Templates
