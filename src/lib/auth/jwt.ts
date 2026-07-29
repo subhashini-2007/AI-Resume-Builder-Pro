@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
 const getJwtSecret = (): string => {
-  return process.env.JWT_SECRET || "default_production_jwt_secret_key_32_chars";
+  return process.env.JWT_SECRET || "fallback_jwt_secret_after_auth_reset_2026_v2";
 };
 
 export interface JWTPayload {

@@ -16,22 +16,63 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    // Perform verification checks, allowing public dashboard pages like templates
-    function verifySession() {
-      const authenticated = authService.isAuthenticated();
+    let active = true;
+
+    async function verifySession() {
+      const clientAuth = authService.isAuthenticated();
       const isDashboardRoute = pathname.startsWith("/dashboard");
       const isPublicDashboardRoute = pathname.startsWith("/templates");
 
-      if (isDashboardRoute && !isPublicDashboardRoute && !authenticated) {
-        setAuthorized(false);
-        router.push("/login");
+      if (isDashboardRoute && !isPublicDashboardRoute) {
+        if (!clientAuth) {
+          if (active) {
+            setAuthorized(false);
+            router.push("/login");
+            setLoading(false);
+          }
+          return;
+        }
+
+        try {
+          const res = await fetch("/api/auth/me");
+          if (!res.ok) {
+            throw new Error("Session expired on server");
+          }
+          const json = await res.json();
+          if (!json.success) {
+            throw new Error("Session invalid");
+          }
+          if (active) {
+            setAuthorized(true);
+            setLoading(false);
+          }
+        } catch (e) {
+          // Clear all localStorage, sessionStorage, and cookies
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("auth_user");
+            localStorage.clear();
+            sessionStorage.clear();
+            document.cookie = "session_token=; path=/; max-age=0; SameSite=Lax";
+          }
+          if (active) {
+            setAuthorized(false);
+            router.push("/login?expired=true");
+            setLoading(false);
+          }
+        }
       } else {
-        setAuthorized(true);
+        if (active) {
+          setAuthorized(true);
+          setLoading(false);
+        }
       }
-      setLoading(false);
     }
 
     verifySession();
+
+    return () => {
+      active = false;
+    };
   }, [pathname, router]);
 
   if (loading) {
@@ -46,6 +87,5 @@ export function RouteGuard({ children }: RouteGuardProps) {
     );
   }
 
-  // Render children only if authenticated or outside dashboard
   return authorized ? <>{children}</> : null;
 }
