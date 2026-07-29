@@ -46,7 +46,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
             setAuthorized(true);
             setLoading(false);
           }
-        } catch (e) {
+        } catch {
           // Clear all localStorage, sessionStorage, and cookies
           if (typeof window !== "undefined") {
             localStorage.removeItem("auth_user");
