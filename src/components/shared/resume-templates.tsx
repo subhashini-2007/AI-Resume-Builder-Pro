@@ -9,6 +9,17 @@ export interface ResumeData {
     phone: string;
     location: string;
     website: string;
+    linkedinUrl?: string;
+    githubUrl?: string;
+    portfolioUrl?: string;
+    leetcodeUrl?: string;
+    hackerrankUrl?: string;
+    kaggleUrl?: string;
+    mediumUrl?: string;
+    stackoverflowUrl?: string;
+    behanceUrl?: string;
+    dribbbleUrl?: string;
+    otherLinkUrl?: string;
     avatar: string; // Base64 image
     summary: string;
   };
@@ -28,6 +39,26 @@ export interface ResumeData {
     endDate: string;
   }>;
   skills: string[];
+  projects?: Array<{
+    id?: string;
+    name: string;
+    description: string;
+    role?: string;
+    url?: string;
+    startDate?: string;
+    endDate?: string;
+    projectType?: string;
+    duration?: string;
+    technologies?: string;
+    responsibilities?: string;
+    keyFeatures?: string[];
+    achievements?: string[];
+    githubUrl?: string;
+    liveUrl?: string;
+    teamSize?: string;
+    clientName?: string;
+    status?: string;
+  }>;
 }
 
 export interface ResumeCustomization {
@@ -51,7 +82,6 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
 
   const { fontFamily, fontSize, lineSpacing, margins, themeColor } = customization || {};
 
-
   // Customization mappings
   const fontClass =
     fontFamily === "serif" ? "font-serif" : fontFamily === "mono" ? "font-mono" : "font-sans";
@@ -65,7 +95,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
   const paddingClass =
     margins === "compact" ? "p-4 md:p-5" : margins === "wide" ? "p-10 md:p-12" : "p-8 md:p-10";
 
-  const accentColor = themeColor || "#2563eb"; // default blue-600
+  const accentColor = themeColor || "#2563eb"; // default blue-650
   const accentStyle = { color: accentColor };
   const accentBorderStyle = { borderColor: accentColor };
   const accentBgStyle = { backgroundColor: accentColor };
@@ -77,6 +107,193 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
         className="space-y-1 text-xs leading-relaxed"
         dangerouslySetInnerHTML={{ __html: desc }}
       />
+    );
+  };
+
+  // Helper: Render Social/Professional Profiles (Horizontal)
+  const renderSocialProfiles = () => {
+    const profiles = [
+      { url: personalInfo.linkedinUrl, label: "LinkedIn", icon: "🔗" },
+      { url: personalInfo.githubUrl, label: "GitHub", icon: "💻" },
+      { url: personalInfo.portfolioUrl, label: "Portfolio", icon: "🌐" },
+      { url: personalInfo.leetcodeUrl, label: "LeetCode", icon: "🧠" },
+      { url: personalInfo.hackerrankUrl, label: "HackerRank", icon: "🏆" },
+      { url: personalInfo.kaggleUrl, label: "Kaggle", icon: "📊" },
+      { url: personalInfo.mediumUrl, label: "Medium", icon: "📝" },
+      { url: personalInfo.stackoverflowUrl, label: "StackOverflow", icon: "💬" },
+      { url: personalInfo.behanceUrl, label: "Behance", icon: "🎨" },
+      { url: personalInfo.dribbbleUrl, label: "Dribbble", icon: "🏀" },
+      { url: personalInfo.otherLinkUrl, label: "Link", icon: "🔗" },
+    ].filter((p) => p.url);
+
+    if (profiles.length === 0) return null;
+
+    return (
+      <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px] text-slate-500 dark:text-slate-400">
+        {profiles.map((p, idx) => (
+          <a
+            key={idx}
+            href={p.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline flex items-center gap-1 font-medium transition-colors"
+            style={{ color: accentColor }}
+          >
+            <span>{p.icon}</span>
+            <span>{p.label}</span>
+          </a>
+        ))}
+      </div>
+    );
+  };
+
+  // Helper: Render Social/Professional Profiles (Vertical)
+  const renderSocialProfilesVertical = () => {
+    const profiles = [
+      { url: personalInfo.linkedinUrl, label: "LinkedIn", icon: "🔗" },
+      { url: personalInfo.githubUrl, label: "GitHub", icon: "💻" },
+      { url: personalInfo.portfolioUrl, label: "Portfolio", icon: "🌐" },
+      { url: personalInfo.leetcodeUrl, label: "LeetCode", icon: "🧠" },
+      { url: personalInfo.hackerrankUrl, label: "HackerRank", icon: "🏆" },
+      { url: personalInfo.kaggleUrl, label: "Kaggle", icon: "📊" },
+      { url: personalInfo.mediumUrl, label: "Medium", icon: "📝" },
+      { url: personalInfo.stackoverflowUrl, label: "StackOverflow", icon: "💬" },
+      { url: personalInfo.behanceUrl, label: "Behance", icon: "🎨" },
+      { url: personalInfo.dribbbleUrl, label: "Dribbble", icon: "🏀" },
+      { url: personalInfo.otherLinkUrl, label: "Link", icon: "🔗" },
+    ].filter((p) => p.url);
+
+    if (profiles.length === 0) return null;
+
+    return (
+      <div className="space-y-1.5 text-[10px] text-slate-300">
+        {profiles.map((p, idx) => (
+          <p key={idx}>
+            <a
+              href={p.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline flex items-center gap-1 font-medium text-slate-300 hover:text-white"
+            >
+              <span>{p.icon}</span>
+              <span className="truncate">{p.label}</span>
+            </a>
+          </p>
+        ))}
+      </div>
+    );
+  };
+
+  // Helper: Render Projects Section
+  const renderProjectsSection = (styleTheme?: "default" | "dark" | "minimal" | "student") => {
+    const projList = data.projects || [];
+    if (projList.length === 0) return null;
+
+    return (
+      <div className="mb-4">
+        {styleTheme === "dark" ? (
+          <h3 className="mb-3 border-b pb-0.5 text-xs font-bold uppercase tracking-wider text-emerald-400" style={accentBorderStyle}>
+            [3] Projects
+          </h3>
+        ) : styleTheme === "minimal" ? (
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-800" style={accentStyle}>
+            Projects
+          </h3>
+        ) : (
+          <h3 className="mb-2 border-b pb-1 text-xs font-bold uppercase tracking-wider" style={{ ...accentStyle, ...accentBorderStyle }}>
+            Projects
+          </h3>
+        )}
+
+        <div className="space-y-4">
+          {projList.map((proj, idx) => (
+            <div key={proj.id || idx}>
+              {/* Project Title, Type, Status, Duration */}
+              <div className="flex items-start justify-between font-semibold text-slate-900 dark:text-slate-100">
+                <div className="flex flex-wrap items-center gap-x-2">
+                  <span className="font-bold text-sm" style={{ color: styleTheme === "dark" ? "#34d399" : undefined }}>{proj.name}</span>
+                  {proj.role && <span className="text-xs text-slate-500 dark:text-slate-450">({proj.role})</span>}
+                  <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[9px] font-medium text-slate-650 dark:text-slate-350">
+                    {proj.projectType}
+                  </span>
+                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-medium ${proj.status === "Ongoing" ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>
+                    {proj.status}
+                  </span>
+                </div>
+                <span className="font-normal text-slate-500 text-[10px]">
+                  {proj.duration}
+                </span>
+              </div>
+
+              {/* Client & Team */}
+              {(proj.clientName || proj.teamSize) && (
+                <div className="mt-0.5 flex gap-4 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                  {proj.clientName && <span>Client: {proj.clientName}</span>}
+                  {proj.teamSize && <span>Team Size: {proj.teamSize}</span>}
+                </div>
+              )}
+
+              {/* Technologies */}
+              {proj.technologies && (
+                <div className="mt-1 text-[10px]">
+                  <span className="font-semibold text-slate-705 dark:text-slate-300">Technologies:</span>{" "}
+                  <span className="text-slate-600 dark:text-slate-400 font-mono">{proj.technologies}</span>
+                </div>
+              )}
+
+              {/* Description */}
+              {proj.description && (
+                <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {proj.description}
+                </p>
+              )}
+
+              {/* Responsibilities */}
+              {proj.responsibilities && (
+                <div className="mt-1 text-xs text-slate-650 dark:text-slate-400">
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Responsibilities:</span> {proj.responsibilities}
+                </div>
+              )}
+
+              {/* Key Features */}
+              {proj.keyFeatures && proj.keyFeatures.length > 0 && (
+                <div className="mt-1">
+                  <span className="text-[10px] font-semibold text-slate-705 dark:text-slate-300">Key Features:</span>
+                  <ul className="list-disc pl-5 mt-0.5 text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
+                    {proj.keyFeatures.map((kf, kidx) => kf && <li key={kidx}>{kf}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              {/* Achievements */}
+              {proj.achievements && proj.achievements.length > 0 && (
+                <div className="mt-1">
+                  <span className="text-[10px] font-semibold text-slate-705 dark:text-slate-300">Achievements:</span>
+                  <ul className="list-disc pl-5 mt-0.5 text-xs text-slate-650 dark:text-slate-400 space-y-0.5">
+                    {proj.achievements.map((ach, aidx) => ach && <li key={aidx}>{ach}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              {/* Repository & Live Demo links */}
+              {(proj.githubUrl || proj.liveUrl) && (
+                <div className="mt-2 flex gap-4 text-[10px]">
+                  {proj.githubUrl && (
+                    <a href={proj.githubUrl} target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold flex items-center gap-1" style={{ color: accentColor }}>
+                      Code Repo 💻
+                    </a>
+                  )}
+                  {proj.liveUrl && (
+                    <a href={proj.liveUrl} target="_blank" rel="noopener noreferrer" className="hover:underline font-semibold flex items-center gap-1" style={{ color: accentColor }}>
+                      Live Demo 🚀
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
     );
   };
 
@@ -97,6 +314,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           {personalInfo.location && <span>{personalInfo.location}</span>}
           {personalInfo.website && <span>{personalInfo.website}</span>}
         </div>
+        {renderSocialProfiles()}
       </div>
 
       {/* Summary */}
@@ -133,6 +351,9 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
         </div>
       )}
 
+      {/* Projects */}
+      {renderProjectsSection()}
+
       {/* Education */}
       {educations.length > 0 && (
         <div className="mb-4">
@@ -144,7 +365,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
               <div key={edu.id} className="flex items-start justify-between">
                 <div>
                   <span className="font-bold text-slate-900">{edu.school}</span>
-                  <span className="block text-slate-650 text-[10px]">{edu.degree}</span>
+                  <span className="block text-slate-600 text-[10px]">{edu.degree}</span>
                 </div>
                 <span className="font-medium text-slate-500 text-[10px]">
                   {edu.startDate} - {edu.endDate}
@@ -199,6 +420,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
               {personalInfo.location && <p>{personalInfo.location}</p>}
               {personalInfo.website && <p className="truncate">{personalInfo.website}</p>}
             </div>
+            {renderSocialProfilesVertical()}
           </div>
 
           {skills.length > 0 && (
@@ -259,6 +481,9 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           </div>
         )}
 
+        {/* Projects */}
+        {renderProjectsSection()}
+
         {/* Education */}
         {educations.length > 0 && (
           <div>
@@ -269,7 +494,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
               {educations.map((edu) => (
                 <div key={edu.id} className="flex items-start justify-between">
                   <div>
-                    <span className="font-bold text-slate-950">{edu.school}</span>
+                    <span className="font-bold text-slate-955">{edu.school}</span>
                     <span className="mt-0.5 block text-[10px] text-slate-500">{edu.degree}</span>
                   </div>
                   <span className="text-[10px] text-slate-500">
@@ -299,6 +524,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           {personalInfo.location && <span>{personalInfo.location}</span>}
           {personalInfo.website && <span>{personalInfo.website}</span>}
         </div>
+        {renderSocialProfiles()}
       </div>
 
       {/* Summary */}
@@ -330,6 +556,9 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           </div>
         </div>
       )}
+
+      {/* Projects */}
+      {renderProjectsSection("minimal")}
 
       {/* Education */}
       {educations.length > 0 && (
@@ -386,12 +615,13 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           {personalInfo.location && <span>{personalInfo.location}</span>}
           {personalInfo.website && <span>{personalInfo.website}</span>}
         </div>
+        {renderSocialProfiles()}
       </div>
 
       {/* Summary */}
       {personalInfo.summary && (
         <div className="mb-5">
-          <h3 className="mb-2 border-b-2 pb-1 font-sans text-xs font-bold uppercase tracking-wider text-slate-950" style={{ ...accentStyle, ...accentBorderStyle }}>
+          <h3 className="mb-2 border-b-2 pb-1 font-sans text-xs font-bold uppercase tracking-wider text-slate-955" style={{ ...accentStyle, ...accentBorderStyle }}>
             Executive Profile
           </h3>
           {renderDescription(personalInfo.summary)}
@@ -401,13 +631,13 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
       {/* Experience */}
       {experiences.length > 0 && (
         <div className="mb-5">
-          <h3 className="mb-3.5 border-b-2 pb-1 font-sans text-xs font-bold uppercase tracking-wider text-slate-950" style={{ ...accentStyle, ...accentBorderStyle }}>
+          <h3 className="mb-3.5 border-b-2 pb-1 font-sans text-xs font-bold uppercase tracking-wider text-slate-955" style={{ ...accentStyle, ...accentBorderStyle }}>
             Professional Highlights
           </h3>
           <div className="space-y-4">
             {experiences.map((exp) => (
               <div key={exp.id}>
-                <div className="flex items-start justify-between font-bold text-slate-950">
+                <div className="flex items-start justify-between font-bold text-slate-955">
                   <span>
                     {exp.role}{" "}
                     <span className="font-normal italic text-slate-500">| {exp.company}</span>
@@ -423,10 +653,13 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
         </div>
       )}
 
+      {/* Projects */}
+      {renderProjectsSection()}
+
       {/* Education */}
       {educations.length > 0 && (
         <div className="mb-5">
-          <h3 className="mb-3 border-b-2 pb-1 font-sans text-xs font-bold uppercase tracking-wider text-slate-950" style={{ ...accentStyle, ...accentBorderStyle }}>
+          <h3 className="mb-3 border-b-2 pb-1 font-sans text-xs font-bold uppercase tracking-wider text-slate-955" style={{ ...accentStyle, ...accentBorderStyle }}>
             Credentials
           </h3>
           <div className="space-y-2">
@@ -451,7 +684,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           <h3 className="mb-2 border-b-2 pb-1 font-sans text-xs font-bold uppercase tracking-wider text-slate-955" style={{ ...accentStyle, ...accentBorderStyle }}>
             Areas of Expertise
           </h3>
-          <p className="text-slate-650 font-sans">{skills.join(" • ")}</p>
+          <p className="text-slate-655 font-sans">{skills.join(" • ")}</p>
         </div>
       )}
     </div>
@@ -481,6 +714,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
               {personalInfo.phone && <span>{personalInfo.phone}</span>}
               {personalInfo.location && <span>{personalInfo.location}</span>}
             </div>
+            {renderSocialProfiles()}
           </div>
         </div>
       </div>
@@ -522,6 +756,9 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
               </div>
             </div>
           )}
+
+          {/* Projects */}
+          {renderProjectsSection()}
         </div>
 
         {/* Sidebar */}
@@ -574,7 +811,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
     <div className={cn("h-full bg-white text-slate-800", paddingClass, fontClass, sizeClass, leadingClass)}>
       {/* Banner */}
       <div className="mb-6 border-l-4 pl-4" style={accentBorderStyle}>
-        <h1 className="text-2xl font-bold uppercase tracking-tight text-slate-950" style={accentStyle}>
+        <h1 className="text-2xl font-bold uppercase tracking-tight text-slate-955" style={accentStyle}>
           {personalInfo.fullName || "Your Name"}
         </h1>
         <p className="mt-1 text-xs font-semibold uppercase tracking-wider" style={accentStyle}>
@@ -585,6 +822,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
           {personalInfo.location && <span>{personalInfo.location}</span>}
         </div>
+        {renderSocialProfiles()}
       </div>
 
       {/* Summary */}
@@ -620,6 +858,9 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           </div>
         </div>
       )}
+
+      {/* Projects */}
+      {renderProjectsSection()}
 
       {/* Education */}
       {educations.length > 0 && (
@@ -671,6 +912,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
           {personalInfo.location && <span>{personalInfo.location}</span>}
         </div>
+        {renderSocialProfiles()}
       </div>
 
       {/* Summary */}
@@ -707,6 +949,9 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           </div>
         </div>
       )}
+
+      {/* Projects */}
+      {renderProjectsSection()}
 
       {/* Education */}
       {educations.length > 0 && (
@@ -748,7 +993,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
       {/* Header */}
       <div className="mb-3 flex items-start justify-between border-b pb-2" style={accentBorderStyle}>
         <div>
-          <h1 className="text-base font-extrabold leading-none text-slate-950" style={accentStyle}>
+          <h1 className="text-base font-extrabold leading-none text-slate-955" style={accentStyle}>
             {personalInfo.fullName || "Your Name"}
           </h1>
           <p className="mt-1 text-xs font-medium leading-none text-slate-500">
@@ -761,6 +1006,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           {personalInfo.website && <p>{personalInfo.website}</p>}
         </div>
       </div>
+      {renderSocialProfiles()}
 
       {/* Summary */}
       {personalInfo.summary && (
@@ -776,11 +1022,11 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           <div className="space-y-2">
             {experiences.map((exp) => (
               <div key={exp.id}>
-                <div className="flex justify-between font-bold text-slate-950">
+                <div className="flex justify-between font-bold text-slate-955">
                   <span>
                     {exp.role} ({exp.company})
                   </span>
-                  <span className="font-normal text-slate-400">
+                  <span className="font-normal text-slate-400 font-mono">
                     {exp.startDate} - {exp.endDate}
                   </span>
                 </div>
@@ -790,6 +1036,9 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           </div>
         </div>
       )}
+
+      {/* Projects */}
+      {renderProjectsSection()}
 
       {/* Education */}
       {educations.length > 0 && (
@@ -838,6 +1087,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           {personalInfo.phone && <span>{personalInfo.phone}</span>}
           {personalInfo.location && <span>{personalInfo.location}</span>}
         </div>
+        {renderSocialProfiles()}
       </div>
 
       {/* Education First */}
@@ -872,11 +1122,14 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
         </div>
       )}
 
+      {/* Projects */}
+      {renderProjectsSection("student")}
+
       {/* Experience */}
       {experiences.length > 0 && (
         <div className="mb-5">
           <h3 className="mb-3 border-b pb-1 text-xs font-bold uppercase tracking-wider text-slate-900" style={{ ...accentStyle, ...accentBorderStyle }}>
-            Academic Projects & Work
+            Work Experience
           </h3>
           <div className="space-y-4">
             {experiences.map((exp) => (
@@ -902,7 +1155,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
   const renderDeveloper = () => (
     <div className={cn("h-full bg-slate-950 font-mono text-[10px] leading-relaxed", paddingClass, fontClass, sizeClass, leadingClass)} style={accentStyle}>
       {/* Terminal Header */}
-      <div className="mb-4 border-b pb-4 text-emerald-400" style={accentBorderStyle}>
+      <div className="mb-4 border-b pb-4 text-emerald-450" style={accentBorderStyle}>
         <h1 className="text-lg font-bold tracking-tight">
           &gt;_ {personalInfo.fullName || "Your Name"}
         </h1>
@@ -914,12 +1167,13 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
           {personalInfo.phone && <span>tel: {personalInfo.phone}</span>}
           {personalInfo.website && <span>url: {personalInfo.website}</span>}
         </div>
+        {renderSocialProfiles()}
       </div>
 
       {/* Summary */}
       {personalInfo.summary && (
-        <div className="mb-4">
-          <h3 className="mb-2 border-b pb-0.5 text-xs font-bold uppercase tracking-wider" style={accentBorderStyle}>
+        <div className="mb-4 text-slate-300">
+          <h3 className="mb-2 border-b pb-0.5 text-xs font-bold uppercase tracking-wider text-emerald-450" style={accentBorderStyle}>
             [0] Summary
           </h3>
           {renderDescription(personalInfo.summary)}
@@ -928,8 +1182,8 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
 
       {/* Skills */}
       {skills.length > 0 && (
-        <div className="mb-4">
-          <h3 className="mb-2 border-b pb-0.5 text-xs font-bold uppercase tracking-wider" style={accentBorderStyle}>
+        <div className="mb-4 text-emerald-400">
+          <h3 className="mb-2 border-b pb-0.5 text-xs font-bold uppercase tracking-wider text-emerald-450" style={accentBorderStyle}>
             [1] Tech Stack
           </h3>
           <p className="font-semibold">{skills.join(" // ")}</p>
@@ -938,18 +1192,18 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
 
       {/* Experience */}
       {experiences.length > 0 && (
-        <div className="mb-4">
-          <h3 className="mb-3 border-b pb-0.5 text-xs font-bold uppercase tracking-wider" style={accentBorderStyle}>
+        <div className="mb-4 text-slate-300">
+          <h3 className="mb-3 border-b pb-0.5 text-xs font-bold uppercase tracking-wider text-emerald-450" style={accentBorderStyle}>
             [2] Experience
           </h3>
           <div className="space-y-3">
             {experiences.map((exp) => (
               <div key={exp.id}>
-                <div className="flex items-start justify-between font-bold">
-                  <span className="opacity-90">
+                <div className="flex items-start justify-between font-bold text-slate-200">
+                  <span className="opacity-90 font-semibold">
                     {exp.role} @ {exp.company}
                   </span>
-                  <span className="opacity-70">
+                  <span className="opacity-70 text-[9px]">
                     {exp.startDate} - {exp.endDate}
                   </span>
                 </div>
@@ -960,19 +1214,22 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
         </div>
       )}
 
+      {/* Projects */}
+      {renderProjectsSection("dark")}
+
       {/* Education */}
       {educations.length > 0 && (
-        <div>
-          <h3 className="mb-2.5 border-b pb-0.5 text-xs font-bold uppercase tracking-wider" style={accentBorderStyle}>
-            [3] Education
+        <div className="text-slate-300">
+          <h3 className="mb-2.5 border-b pb-0.5 text-xs font-bold uppercase tracking-wider text-emerald-450" style={accentBorderStyle}>
+            [4] Education
           </h3>
           <div className="space-y-1">
             {educations.map((edu) => (
-              <div key={edu.id} className="flex justify-between">
+              <div key={edu.id} className="flex justify-between text-slate-200">
                 <span>
                   {edu.school} -- {edu.degree}
                 </span>
-                <span className="opacity-70 font-mono">
+                <span className="opacity-70 font-mono text-[9px]">
                   {edu.startDate} - {edu.endDate}
                 </span>
               </div>
@@ -986,7 +1243,7 @@ export const ResumeTemplates = memo(function ResumeTemplates(props: ResumeTempla
   return (
     <div
       className={cn(
-        "aspect-[1/1.4] w-full overflow-hidden rounded-xl border bg-white shadow-md",
+        "aspect-[1/1.4] w-full overflow-hidden rounded-xl border bg-white shadow-md select-none",
         className
       )}
     >

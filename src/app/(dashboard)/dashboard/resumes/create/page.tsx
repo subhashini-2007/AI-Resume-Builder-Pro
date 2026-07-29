@@ -30,6 +30,7 @@ import {
   Printer,
   GripVertical,
   History,
+  Globe,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -86,12 +87,24 @@ const INITIAL_DATA: ResumeData = {
     phone: "",
     location: "",
     website: "",
+    linkedinUrl: "",
+    githubUrl: "",
+    portfolioUrl: "",
+    leetcodeUrl: "",
+    hackerrankUrl: "",
+    kaggleUrl: "",
+    mediumUrl: "",
+    stackoverflowUrl: "",
+    behanceUrl: "",
+    dribbbleUrl: "",
+    otherLinkUrl: "",
     avatar: "",
     summary: "",
   },
   experiences: [],
   educations: [],
   skills: [],
+  projects: [],
 };
 
 const TEMPLATES = [
@@ -127,18 +140,20 @@ export default function CreateResumePage() {
   const [showPreviewMobile, setShowPreviewMobile] = React.useState(false);
   const [isPageLoading, setIsPageLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [profilesCollapsed, setProfilesCollapsed] = React.useState(false);
+  const [collapsedProjects, setCollapsedProjects] = React.useState<Record<string, boolean>>({});
 
   // Drag and drop states
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
-  const [draggedType, setDraggedType] = React.useState<"experience" | "education" | null>(null);
+  const [draggedType, setDraggedType] = React.useState<"experience" | "education" | "project" | null>(null);
 
-  const handleDragStart = (e: React.DragEvent, index: number, type: "experience" | "education") => {
+  const handleDragStart = (e: React.DragEvent, index: number, type: "experience" | "education" | "project") => {
     setDraggedIndex(index);
     setDraggedType(type);
     e.dataTransfer.effectAllowed = "move";
   };
 
-  const handleDragOver = (e: React.DragEvent, index: number, type: "experience" | "education") => {
+  const handleDragOver = (e: React.DragEvent, index: number, type: "experience" | "education" | "project") => {
     e.preventDefault();
     if (draggedIndex === null || draggedType !== type || draggedIndex === index) return;
 
@@ -149,13 +164,20 @@ export default function CreateResumePage() {
       list.splice(index, 0, draggedItem);
       setDraggedIndex(index);
       updateData({ ...data, experiences: list });
-    } else {
+    } else if (type === "education") {
       const list = [...data.educations];
       const draggedItem = list[draggedIndex];
       list.splice(draggedIndex, 1);
       list.splice(index, 0, draggedItem);
       setDraggedIndex(index);
       updateData({ ...data, educations: list });
+    } else if (type === "project") {
+      const list = [...(data.projects || [])];
+      const draggedItem = list[draggedIndex];
+      list.splice(draggedIndex, 1);
+      list.splice(index, 0, draggedItem);
+      setDraggedIndex(index);
+      updateData({ ...data, projects: list });
     }
   };
 
@@ -231,15 +253,26 @@ export default function CreateResumePage() {
           setData({
             personalInfo: {
               fullName: fetched.fullName || "",
-              title: fetched.experiences?.[0]?.role || "",
+              title: fetched.title || fetched.experiences?.[0]?.role || "",
               email: fetched.email || "",
               phone: fetched.phone || "",
               location: fetched.location || "",
               website: fetched.website || "",
+              linkedinUrl: (fetched as any).linkedinUrl || "",
+              githubUrl: (fetched as any).githubUrl || "",
+              portfolioUrl: (fetched as any).portfolioUrl || "",
+              leetcodeUrl: (fetched as any).leetcodeUrl || "",
+              hackerrankUrl: (fetched as any).hackerrankUrl || "",
+              kaggleUrl: (fetched as any).kaggleUrl || "",
+              mediumUrl: (fetched as any).mediumUrl || "",
+              stackoverflowUrl: (fetched as any).stackoverflowUrl || "",
+              behanceUrl: (fetched as any).behanceUrl || "",
+              dribbbleUrl: (fetched as any).dribbbleUrl || "",
+              otherLinkUrl: (fetched as any).otherLinkUrl || "",
               avatar: fetched.avatar || "",
               summary: fetched.summary || "",
             },
-            experiences: (fetched.experiences || []).map((e: DBExperience) => ({
+            experiences: (fetched.experiences || []).map((e: any) => ({
               id: e.id,
               company: e.company || "",
               role: e.role || "",
@@ -247,14 +280,34 @@ export default function CreateResumePage() {
               endDate: e.endDate || "",
               description: e.description || "",
             })),
-            educations: (fetched.educations || []).map((edu: DBEducation) => ({
+            educations: (fetched.educations || []).map((edu: any) => ({
               id: edu.id,
               school: edu.school || "",
               degree: edu.degree || "",
               startDate: edu.startDate || "",
               endDate: edu.endDate || "",
             })),
-            skills: (fetched.skills || []).map((s: DBSkill) => s.name),
+            skills: (fetched.skills || []).map((s: any) => s.name),
+            projects: (fetched.projects || []).map((p: any) => ({
+              id: p.id,
+              name: p.name || "",
+              description: p.description || "",
+              role: p.role || "",
+              url: p.url || "",
+              startDate: p.startDate || "",
+              endDate: p.endDate || "",
+              projectType: p.projectType || "Personal",
+              duration: p.duration || "",
+              technologies: p.technologies || "",
+              responsibilities: p.responsibilities || "",
+              keyFeatures: p.keyFeatures || [],
+              achievements: p.achievements || [],
+              githubUrl: p.githubUrl || "",
+              liveUrl: p.liveUrl || "",
+              teamSize: p.teamSize || "",
+              clientName: p.clientName || "",
+              status: p.status || "Completed",
+            })),
           });
           if (fetched.selectedTemplate) {
             const parts = fetched.selectedTemplate.split("?");
@@ -304,6 +357,17 @@ export default function CreateResumePage() {
             email: data.personalInfo.email || "",
             location: data.personalInfo.location || "",
             website: data.personalInfo.website || "",
+            linkedinUrl: data.personalInfo.linkedinUrl || "",
+            githubUrl: data.personalInfo.githubUrl || "",
+            portfolioUrl: data.personalInfo.portfolioUrl || "",
+            leetcodeUrl: data.personalInfo.leetcodeUrl || "",
+            hackerrankUrl: data.personalInfo.hackerrankUrl || "",
+            kaggleUrl: data.personalInfo.kaggleUrl || "",
+            mediumUrl: data.personalInfo.mediumUrl || "",
+            stackoverflowUrl: data.personalInfo.stackoverflowUrl || "",
+            behanceUrl: data.personalInfo.behanceUrl || "",
+            dribbbleUrl: data.personalInfo.dribbbleUrl || "",
+            otherLinkUrl: data.personalInfo.otherLinkUrl || "",
             avatar: data.personalInfo.avatar || "",
             selectedTemplate: `${selectedTemplate}?fontFamily=${customization.fontFamily || "sans"}&fontSize=${customization.fontSize || "md"}&lineSpacing=${customization.lineSpacing || "normal"}&margins=${customization.margins || "normal"}&themeColor=${encodeURIComponent(customization.themeColor || "#2563eb")}`,
             status: "DRAFT",
@@ -324,6 +388,26 @@ export default function CreateResumePage() {
             })),
             skills: data.skills.map((skillName, idx) => ({
               name: skillName,
+              order: idx,
+            })),
+            projects: (data.projects || []).map((proj, idx) => ({
+              name: proj.name || "",
+              description: proj.description || "",
+              role: proj.role || "",
+              url: proj.url || "",
+              startDate: proj.startDate || "",
+              endDate: proj.endDate || "",
+              projectType: proj.projectType || "Personal",
+              duration: proj.duration || "",
+              technologies: proj.technologies || "",
+              responsibilities: proj.responsibilities || "",
+              keyFeatures: proj.keyFeatures || [],
+              achievements: proj.achievements || [],
+              githubUrl: proj.githubUrl || "",
+              liveUrl: proj.liveUrl || "",
+              teamSize: proj.teamSize || "",
+              clientName: proj.clientName || "",
+              status: proj.status || "Completed",
               order: idx,
             })),
           }),
@@ -604,6 +688,45 @@ export default function CreateResumePage() {
     updateData({ ...data, skills: data.skills.filter((s) => s !== skill) });
   };
 
+  // Project array manipulation
+  const addProject = () => {
+    const newProj = {
+      id: Math.random().toString(36).substring(2, 9),
+      name: "",
+      description: "",
+      role: "",
+      url: "",
+      startDate: "",
+      endDate: "",
+      projectType: "Personal",
+      duration: "",
+      technologies: "",
+      responsibilities: "",
+      keyFeatures: [] as string[],
+      achievements: [] as string[],
+      githubUrl: "",
+      liveUrl: "",
+      teamSize: "",
+      clientName: "",
+      status: "Completed",
+    };
+    updateData({ ...data, projects: [...(data.projects || []), newProj] });
+  };
+
+  const removeProject = (projId: string) => {
+    updateData({ ...data, projects: (data.projects || []).filter((p) => p.id !== projId) });
+  };
+
+  const shiftProject = (index: number, direction: "up" | "down") => {
+    const list = [...(data.projects || [])];
+    const target = direction === "up" ? index - 1 : index + 1;
+    if (target < 0 || target >= list.length) return;
+    const temp = list[index];
+    list[index] = list[target];
+    list[target] = temp;
+    updateData({ ...data, projects: list });
+  };
+
   // Manual save trigger
   const handleSaveDraft = async () => {
     if (!id) return;
@@ -620,6 +743,17 @@ export default function CreateResumePage() {
           email: data.personalInfo.email || "",
           location: data.personalInfo.location || "",
           website: data.personalInfo.website || "",
+          linkedinUrl: data.personalInfo.linkedinUrl || "",
+          githubUrl: data.personalInfo.githubUrl || "",
+          portfolioUrl: data.personalInfo.portfolioUrl || "",
+          leetcodeUrl: data.personalInfo.leetcodeUrl || "",
+          hackerrankUrl: data.personalInfo.hackerrankUrl || "",
+          kaggleUrl: data.personalInfo.kaggleUrl || "",
+          mediumUrl: data.personalInfo.mediumUrl || "",
+          stackoverflowUrl: data.personalInfo.stackoverflowUrl || "",
+          behanceUrl: data.personalInfo.behanceUrl || "",
+          dribbbleUrl: data.personalInfo.dribbbleUrl || "",
+          otherLinkUrl: data.personalInfo.otherLinkUrl || "",
           avatar: data.personalInfo.avatar || "",
           selectedTemplate: `${selectedTemplate}?fontFamily=${customization.fontFamily || "sans"}&fontSize=${customization.fontSize || "md"}&lineSpacing=${customization.lineSpacing || "normal"}&margins=${customization.margins || "normal"}&themeColor=${encodeURIComponent(customization.themeColor || "#2563eb")}`,
           status: "DRAFT",
@@ -640,6 +774,26 @@ export default function CreateResumePage() {
           })),
           skills: data.skills.map((skillName, idx) => ({
             name: skillName,
+            order: idx,
+          })),
+          projects: (data.projects || []).map((proj, idx) => ({
+            name: proj.name || "",
+            description: proj.description || "",
+            role: proj.role || "",
+            url: proj.url || "",
+            startDate: proj.startDate || "",
+            endDate: proj.endDate || "",
+            projectType: proj.projectType || "Personal",
+            duration: proj.duration || "",
+            technologies: proj.technologies || "",
+            responsibilities: proj.responsibilities || "",
+            keyFeatures: proj.keyFeatures || [],
+            achievements: proj.achievements || [],
+            githubUrl: proj.githubUrl || "",
+            liveUrl: proj.liveUrl || "",
+            teamSize: proj.teamSize || "",
+            clientName: proj.clientName || "",
+            status: proj.status || "Completed",
             order: idx,
           })),
         }),
@@ -696,6 +850,67 @@ export default function CreateResumePage() {
       )
       .join("");
 
+    const projectsHtml = (resumeData.projects || [])
+      .map(
+        (proj) => {
+          const keyFeaturesHtml = proj.keyFeatures && proj.keyFeatures.length > 0
+            ? `<div style="margin-top: 4px; margin-left: 15px; font-size: 9.5pt; color: #4b5563;">
+                <strong>Key Features:</strong>
+                <ul style="margin: 2px 0 0 0; padding-left: 15px;">
+                  ${proj.keyFeatures.map(kf => kf ? `<li>${kf}</li>` : "").join("")}
+                </ul>
+               </div>`
+            : "";
+
+          const achievementsHtml = proj.achievements && proj.achievements.length > 0
+            ? `<div style="margin-top: 4px; margin-left: 15px; font-size: 9.5pt; color: #4b5563;">
+                <strong>Achievements:</strong>
+                <ul style="margin: 2px 0 0 0; padding-left: 15px;">
+                  ${proj.achievements.map(ach => ach ? `<li>${ach}</li>` : "").join("")}
+                </ul>
+               </div>`
+            : "";
+
+          const linksHtml = (proj.githubUrl || proj.liveUrl)
+            ? `<div style="margin-top: 4px; font-size: 9.5pt; color: ${accent};">
+                ${proj.githubUrl ? `Code: <a href="${proj.githubUrl}" style="color: ${accent}; text-decoration: none;">${proj.githubUrl}</a>` : ""}
+                ${proj.githubUrl && proj.liveUrl ? ` &nbsp;|&nbsp; ` : ""}
+                ${proj.liveUrl ? `Live: <a href="${proj.liveUrl}" style="color: ${accent}; text-decoration: none;">${proj.liveUrl}</a>` : ""}
+               </div>`
+            : "";
+
+          return `
+            <div style="margin-bottom: 12px;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="width: 100%;">
+                <tr>
+                  <td style="font-weight: bold; font-size: 11pt; color: #111827;">
+                    ${proj.name || ""} 
+                    ${proj.role ? `(${proj.role})` : ""} 
+                    <span style="font-size: 9pt; font-weight: normal; background-color: #f3f4f6; padding: 1px 6px; border-radius: 4px; color: #4b5563;">${proj.projectType || ""}</span>
+                    <span style="font-size: 9pt; font-weight: normal; background-color: ${proj.status === "Ongoing" ? "#fef3c7" : "#d1fae5"}; padding: 1px 6px; border-radius: 4px; color: ${proj.status === "Ongoing" ? "#92400e" : "#065f46"};">${proj.status || ""}</span>
+                  </td>
+                  <td align="right" style="font-size: 9.5pt; color: #6b7280; text-align: right;">${proj.duration || ""}</td>
+                </tr>
+              </table>
+              ${(proj.clientName || proj.teamSize) ? `
+                <div style="font-size: 9.5pt; color: #6b7280; margin-top: 2px;">
+                  ${proj.clientName ? `Client: ${proj.clientName}` : ""}
+                  ${proj.clientName && proj.teamSize ? ` &nbsp;|&nbsp; ` : ""}
+                  ${proj.teamSize ? `Team Size: ${proj.teamSize}` : ""}
+                </div>
+              ` : ""}
+              ${proj.technologies ? `<div style="font-size: 9.5pt; color: #4b5563; margin-top: 2px;"><strong>Technologies:</strong> ${proj.technologies}</div>` : ""}
+              ${proj.description ? `<div style="margin-top: 4px; font-size: 10pt; color: #374151;">${proj.description}</div>` : ""}
+              ${proj.responsibilities ? `<div style="margin-top: 2px; font-size: 9.5pt; color: #4b5563;"><strong>Responsibilities:</strong> ${proj.responsibilities}</div>` : ""}
+              ${keyFeaturesHtml}
+              ${achievementsHtml}
+              ${linksHtml}
+            </div>
+          `;
+        }
+      )
+      .join("");
+
     const educationsHtml = educations
       .map(
         (edu) => `
@@ -714,6 +929,26 @@ export default function CreateResumePage() {
 
     const skillsHtml = skills.length > 0 
       ? `<p style="font-size: 10pt; color: #374151;">${skills.join(" &bull; ")}</p>`
+      : "";
+
+    const profiles = [
+      { url: personalInfo.linkedinUrl, label: "LinkedIn" },
+      { url: personalInfo.githubUrl, label: "GitHub" },
+      { url: personalInfo.portfolioUrl, label: "Portfolio" },
+      { url: personalInfo.leetcodeUrl, label: "LeetCode" },
+      { url: personalInfo.hackerrankUrl, label: "HackerRank" },
+      { url: personalInfo.kaggleUrl, label: "Kaggle" },
+      { url: personalInfo.mediumUrl, label: "Medium" },
+      { url: personalInfo.stackoverflowUrl, label: "StackOverflow" },
+      { url: personalInfo.behanceUrl, label: "Behance" },
+      { url: personalInfo.dribbbleUrl, label: "Dribbble" },
+      { url: personalInfo.otherLinkUrl, label: "Link" },
+    ].filter((p) => p.url);
+
+    const profilesHtml = profiles.length > 0
+      ? `<p style="font-size: 9.5pt; color: #6b7280; text-align: center; margin-top: 4px;">
+          ${profiles.map(p => `<a href="${p.url}" style="color: ${accent}; text-decoration: none;">${p.label}</a>`).join(" &nbsp;|&nbsp; ")}
+         </p>`
       : "";
 
     return `
@@ -769,6 +1004,7 @@ export default function CreateResumePage() {
             ${personalInfo.location ? ` &nbsp;|&nbsp; Location: ${personalInfo.location}` : ""}
             ${personalInfo.website ? ` &nbsp;|&nbsp; Website: ${personalInfo.website}` : ""}
           </p>
+          ${profilesHtml}
         </div>
 
         <!-- Summary -->
@@ -787,6 +1023,16 @@ export default function CreateResumePage() {
             ? `
           <h2>Professional Experience</h2>
           ${experiencesHtml}
+        `
+            : ""
+        }
+
+        <!-- Projects -->
+        ${
+          (resumeData.projects || []).length > 0
+            ? `
+          <h2>Projects</h2>
+          ${projectsHtml}
         `
             : ""
         }
@@ -1063,7 +1309,7 @@ export default function CreateResumePage() {
         >
           {/* Tab Navigation */}
           <div className="flex gap-2 overflow-x-auto border-b border-border/40 pb-2">
-            {(["personal", "experience", "education", "skills", "customization", "history"] as const).map((tab) => (
+            {(["personal", "experience", "projects", "education", "skills", "customization", "history"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -1279,6 +1525,201 @@ export default function CreateResumePage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Collapsible Professional Profiles Section */}
+              <Card className="glassmorphism mt-4">
+                <CardHeader className="cursor-pointer select-none py-3" onClick={() => setProfilesCollapsed(!profilesCollapsed)}>
+                  <CardTitle className="flex items-center justify-between text-sm font-bold">
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-primary" />
+                      Professional Profiles
+                    </div>
+                    <span className="text-xs text-muted-foreground">{profilesCollapsed ? "Expand" : "Collapse"}</span>
+                  </CardTitle>
+                </CardHeader>
+                {!profilesCollapsed && (
+                  <CardContent className="space-y-4 pt-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* LinkedIn */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-muted-foreground">LinkedIn URL</label>
+                        <input
+                          type="text"
+                          placeholder="https://linkedin.com/in/username"
+                          className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                          value={data.personalInfo.linkedinUrl || ""}
+                          onChange={(e) =>
+                            updateData({
+                              ...data,
+                              personalInfo: { ...data.personalInfo, linkedinUrl: e.target.value },
+                            })
+                          }
+                        />
+                      </div>
+                      {/* GitHub */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-muted-foreground">GitHub URL</label>
+                        <input
+                          type="text"
+                          placeholder="https://github.com/username"
+                          className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                          value={data.personalInfo.githubUrl || ""}
+                          onChange={(e) =>
+                            updateData({
+                              ...data,
+                              personalInfo: { ...data.personalInfo, githubUrl: e.target.value },
+                            })
+                          }
+                        />
+                      </div>
+                      {/* Portfolio */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-muted-foreground">Portfolio Website</label>
+                        <input
+                          type="text"
+                          placeholder="https://myportfolio.com"
+                          className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                          value={data.personalInfo.portfolioUrl || ""}
+                          onChange={(e) =>
+                            updateData({
+                              ...data,
+                              personalInfo: { ...data.personalInfo, portfolioUrl: e.target.value },
+                            })
+                          }
+                        />
+                      </div>
+                      {/* LeetCode */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-muted-foreground">LeetCode Profile</label>
+                        <input
+                          type="text"
+                          placeholder="https://leetcode.com/username"
+                          className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                          value={data.personalInfo.leetcodeUrl || ""}
+                          onChange={(e) =>
+                            updateData({
+                              ...data,
+                              personalInfo: { ...data.personalInfo, leetcodeUrl: e.target.value },
+                            })
+                          }
+                        />
+                      </div>
+                      {/* HackerRank */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-muted-foreground">HackerRank Profile</label>
+                        <input
+                          type="text"
+                          placeholder="https://hackerrank.com/username"
+                          className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                          value={data.personalInfo.hackerrankUrl || ""}
+                          onChange={(e) =>
+                            updateData({
+                              ...data,
+                              personalInfo: { ...data.personalInfo, hackerrankUrl: e.target.value },
+                            })
+                          }
+                        />
+                      </div>
+                      {/* Kaggle */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-muted-foreground">Kaggle Profile</label>
+                        <input
+                          type="text"
+                          placeholder="https://kaggle.com/username"
+                          className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                          value={data.personalInfo.kaggleUrl || ""}
+                          onChange={(e) =>
+                            updateData({
+                              ...data,
+                              personalInfo: { ...data.personalInfo, kaggleUrl: e.target.value },
+                            })
+                          }
+                        />
+                      </div>
+                      {/* Medium / Dev.to */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-muted-foreground">Medium / Dev.to Blog</label>
+                        <input
+                          type="text"
+                          placeholder="https://medium.com/@username"
+                          className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                          value={data.personalInfo.mediumUrl || ""}
+                          onChange={(e) =>
+                            updateData({
+                              ...data,
+                              personalInfo: { ...data.personalInfo, mediumUrl: e.target.value },
+                            })
+                          }
+                        />
+                      </div>
+                      {/* Stack Overflow */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-muted-foreground">Stack Overflow Profile</label>
+                        <input
+                          type="text"
+                          placeholder="https://stackoverflow.com/users/uid/username"
+                          className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                          value={data.personalInfo.stackoverflowUrl || ""}
+                          onChange={(e) =>
+                            updateData({
+                              ...data,
+                              personalInfo: { ...data.personalInfo, stackoverflowUrl: e.target.value },
+                            })
+                          }
+                        />
+                      </div>
+                      {/* Behance */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-muted-foreground">Behance Profile</label>
+                        <input
+                          type="text"
+                          placeholder="https://behance.net/username"
+                          className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                          value={data.personalInfo.behanceUrl || ""}
+                          onChange={(e) =>
+                            updateData({
+                              ...data,
+                              personalInfo: { ...data.personalInfo, behanceUrl: e.target.value },
+                            })
+                          }
+                        />
+                      </div>
+                      {/* Dribbble */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-muted-foreground">Dribbble Profile</label>
+                        <input
+                          type="text"
+                          placeholder="https://dribbble.com/username"
+                          className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                          value={data.personalInfo.dribbbleUrl || ""}
+                          onChange={(e) =>
+                            updateData({
+                              ...data,
+                              personalInfo: { ...data.personalInfo, dribbbleUrl: e.target.value },
+                            })
+                          }
+                        />
+                      </div>
+                      {/* Other Professional Link */}
+                      <div className="col-span-2 space-y-1">
+                        <label className="text-xs font-semibold text-muted-foreground">Other Professional Link</label>
+                        <input
+                          type="text"
+                          placeholder="https://example.com/other-link"
+                          className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                          value={data.personalInfo.otherLinkUrl || ""}
+                          onChange={(e) =>
+                            updateData({
+                              ...data,
+                              personalInfo: { ...data.personalInfo, otherLinkUrl: e.target.value },
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
             )}
 
             {/* Tab 2: Work Experience */}
@@ -1451,6 +1892,423 @@ export default function CreateResumePage() {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            )}
+
+            {/* Tab: Projects */}
+            {activeTab === "projects" && (
+              <div className="space-y-4">
+                <Button onClick={addProject} className="w-full flex items-center gap-1">
+                  <Plus className="h-4 w-4" />
+                  Add Project
+                </Button>
+
+                {(data.projects || []).length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-sm border-2 border-dashed border-border/40 rounded-lg">
+                    No projects added yet. Click "Add Project" to start adding your work!
+                  </div>
+                ) : (
+                  (data.projects || []).map((proj, idx) => {
+                    const isCollapsed = !!collapsedProjects[proj.id || ""];
+
+                    return (
+                      <Card
+                        key={proj.id || idx}
+                        className={cn(
+                          "glassmorphism transition-all duration-200",
+                          draggedIndex === idx && draggedType === "project" ? "opacity-40 scale-[0.98] border-primary/40 bg-primary/5" : ""
+                        )}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, idx, "project")}
+                        onDragOver={(e) => handleDragOver(e, idx, "project")}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <CardHeader className="py-3 flex flex-row items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded">
+                              <GripVertical className="h-4 w-4" />
+                            </div>
+                            <FileText className="h-4 w-4 text-primary" />
+                            <CardTitle className="text-sm font-bold">
+                              {proj.name || `Project #${idx + 1}`}
+                            </CardTitle>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleProjectCollapse(proj.id || "")}
+                              title={isCollapsed ? "Expand" : "Collapse"}
+                            >
+                              {isCollapsed ? "Expand" : "Collapse"}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => shiftProject(idx, "up")}
+                              disabled={idx === 0}
+                            >
+                              <ArrowUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => shiftProject(idx, "down")}
+                              disabled={idx === (data.projects || []).length - 1}
+                            >
+                              <ArrowDown className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:bg-destructive/10"
+                              onClick={() => removeProject(proj.id || "")}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        {!isCollapsed && (
+                          <CardContent className="space-y-4 pt-2">
+                            <div className="grid grid-cols-2 gap-4">
+                              {/* Project Name */}
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold text-muted-foreground">Project Name</label>
+                                <input
+                                  type="text"
+                                  className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                  value={proj.name}
+                                  onChange={(e) => {
+                                    const list = (data.projects || []).map((item, pidx) =>
+                                      pidx === idx ? { ...item, name: e.target.value } : item
+                                    );
+                                    updateData({ ...data, projects: list });
+                                  }}
+                                />
+                              </div>
+                              {/* Role */}
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold text-muted-foreground">Role / Contribution</label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. Lead Developer"
+                                  className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                  value={proj.role || ""}
+                                  onChange={(e) => {
+                                    const list = (data.projects || []).map((item, pidx) =>
+                                      pidx === idx ? { ...item, role: e.target.value } : item
+                                    );
+                                    updateData({ ...data, projects: list });
+                                  }}
+                                />
+                              </div>
+                              {/* Project Type */}
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold text-muted-foreground">Project Type</label>
+                                <select
+                                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                  value={proj.projectType || "Personal"}
+                                  onChange={(e) => {
+                                    const list = (data.projects || []).map((item, pidx) =>
+                                      pidx === idx ? { ...item, projectType: e.target.value } : item
+                                    );
+                                    updateData({ ...data, projects: list });
+                                  }}
+                                >
+                                  <option value="Personal">Personal</option>
+                                  <option value="Academic">Academic</option>
+                                  <option value="Internship">Internship</option>
+                                  <option value="Freelance">Freelance</option>
+                                  <option value="Open Source">Open Source</option>
+                                </select>
+                              </div>
+                              {/* Duration */}
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold text-muted-foreground">Duration</label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. 3 months, Jan 2023 - Mar 2023"
+                                  className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                  value={proj.duration || ""}
+                                  onChange={(e) => {
+                                    const list = (data.projects || []).map((item, pidx) =>
+                                      pidx === idx ? { ...item, duration: e.target.value } : item
+                                    );
+                                    updateData({ ...data, projects: list });
+                                  }}
+                                />
+                              </div>
+                              {/* Status */}
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold text-muted-foreground">Status</label>
+                                <select
+                                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                  value={proj.status || "Completed"}
+                                  onChange={(e) => {
+                                    const list = (data.projects || []).map((item, pidx) =>
+                                      pidx === idx ? { ...item, status: e.target.value } : item
+                                    );
+                                    updateData({ ...data, projects: list });
+                                  }}
+                                >
+                                  <option value="Completed">Completed</option>
+                                  <option value="Ongoing">Ongoing</option>
+                                </select>
+                              </div>
+                              {/* Client Name */}
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold text-muted-foreground">Client Name (Optional)</label>
+                                <input
+                                  type="text"
+                                  className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                  value={proj.clientName || ""}
+                                  onChange={(e) => {
+                                    const list = (data.projects || []).map((item, pidx) =>
+                                      pidx === idx ? { ...item, clientName: e.target.value } : item
+                                    );
+                                    updateData({ ...data, projects: list });
+                                  }}
+                                />
+                              </div>
+                              {/* Team Size */}
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold text-muted-foreground">Team Size</label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. 5 members"
+                                  className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                  value={proj.teamSize || ""}
+                                  onChange={(e) => {
+                                    const list = (data.projects || []).map((item, pidx) =>
+                                      pidx === idx ? { ...item, teamSize: e.target.value } : item
+                                    );
+                                    updateData({ ...data, projects: list });
+                                  }}
+                                />
+                              </div>
+                              {/* Technologies Used */}
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold text-muted-foreground">Technologies Used</label>
+                                <input
+                                  type="text"
+                                  placeholder="React, Next.js, TailwindCSS"
+                                  className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                  value={proj.technologies || ""}
+                                  onChange={(e) => {
+                                    const list = (data.projects || []).map((item, pidx) =>
+                                      pidx === idx ? { ...item, technologies: e.target.value } : item
+                                    );
+                                    updateData({ ...data, projects: list });
+                                  }}
+                                />
+                              </div>
+                              {/* GitHub Repo URL */}
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold text-muted-foreground">GitHub Repo URL</label>
+                                <input
+                                  type="text"
+                                  placeholder="https://github.com/..."
+                                  className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                  value={proj.githubUrl || ""}
+                                  onChange={(e) => {
+                                    const list = (data.projects || []).map((item, pidx) =>
+                                      pidx === idx ? { ...item, githubUrl: e.target.value } : item
+                                    );
+                                    updateData({ ...data, projects: list });
+                                  }}
+                                />
+                              </div>
+                              {/* Live Demo URL */}
+                              <div className="space-y-1">
+                                <label className="text-xs font-semibold text-muted-foreground">Live Demo URL</label>
+                                <input
+                                  type="text"
+                                  placeholder="https://myproj.com"
+                                  className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                  value={proj.liveUrl || ""}
+                                  onChange={(e) => {
+                                    const list = (data.projects || []).map((item, pidx) =>
+                                      pidx === idx ? { ...item, liveUrl: e.target.value } : item
+                                    );
+                                    updateData({ ...data, projects: list });
+                                  }}
+                                />
+                              </div>
+
+                              {/* Description */}
+                              <div className="col-span-2 space-y-1">
+                                <label className="text-xs font-semibold text-muted-foreground">Project Description</label>
+                                <textarea
+                                  rows={3}
+                                  className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                  value={proj.description}
+                                  onChange={(e) => {
+                                    const list = (data.projects || []).map((item, pidx) =>
+                                      pidx === idx ? { ...item, description: e.target.value } : item
+                                    );
+                                    updateData({ ...data, projects: list });
+                                  }}
+                                />
+                              </div>
+
+                              {/* Responsibilities */}
+                              <div className="col-span-2 space-y-1">
+                                <label className="text-xs font-semibold text-muted-foreground">Responsibilities</label>
+                                <textarea
+                                  rows={2}
+                                  className="w-full rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                  value={proj.responsibilities || ""}
+                                  onChange={(e) => {
+                                    const list = (data.projects || []).map((item, pidx) =>
+                                      pidx === idx ? { ...item, responsibilities: e.target.value } : item
+                                    );
+                                    updateData({ ...data, projects: list });
+                                  }}
+                                />
+                              </div>
+
+                              {/* Key Features */}
+                              <div className="col-span-2 space-y-2">
+                                <label className="text-xs font-semibold text-muted-foreground block">Key Features</label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    id={`new-feature-input-${idx}`}
+                                    placeholder="Enter a key feature..."
+                                    className="flex-1 rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        const input = e.currentTarget;
+                                        const val = input.value.trim();
+                                        if (val) {
+                                          const features = proj.keyFeatures || [];
+                                          const list = (data.projects || []).map((item, pidx) =>
+                                            pidx === idx ? { ...item, keyFeatures: [...features, val] } : item
+                                          );
+                                          updateData({ ...data, projects: list });
+                                          input.value = "";
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    type="button"
+                                    onClick={() => {
+                                      const input = document.getElementById(`new-feature-input-${idx}`) as HTMLInputElement;
+                                      const val = input?.value.trim();
+                                      if (val) {
+                                        const features = proj.keyFeatures || [];
+                                        const list = (data.projects || []).map((item, pidx) =>
+                                          pidx === idx ? { ...item, keyFeatures: [...features, val] } : item
+                                        );
+                                        updateData({ ...data, projects: list });
+                                        input.value = "";
+                                      }
+                                    }}
+                                  >
+                                    Add
+                                  </Button>
+                                </div>
+                                <div className="space-y-1 mt-1">
+                                  {(proj.keyFeatures || []).map((feature, fidx) => (
+                                    <div key={fidx} className="flex items-center justify-between bg-muted/30 px-3 py-1.5 rounded border border-border/40 text-xs text-foreground animate-fadeIn">
+                                      <span>• {feature}</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        type="button"
+                                        className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+                                        onClick={() => {
+                                          const list = (data.projects || []).map((item, pidx) =>
+                                            pidx === idx ? { ...item, keyFeatures: (item.keyFeatures || []).filter((_, i) => i !== fidx) } : item
+                                          );
+                                          updateData({ ...data, projects: list });
+                                        }}
+                                      >
+                                        &times;
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Achievements */}
+                              <div className="col-span-2 space-y-2">
+                                <label className="text-xs font-semibold text-muted-foreground block">Achievements</label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    id={`new-achievement-input-${idx}`}
+                                    placeholder="Enter an achievement..."
+                                    className="flex-1 rounded-md border border-border bg-background/50 px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        const input = e.currentTarget;
+                                        const val = input.value.trim();
+                                        if (val) {
+                                          const achs = proj.achievements || [];
+                                          const list = (data.projects || []).map((item, pidx) =>
+                                            pidx === idx ? { ...item, achievements: [...achs, val] } : item
+                                          );
+                                          updateData({ ...data, projects: list });
+                                          input.value = "";
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    type="button"
+                                    onClick={() => {
+                                      const input = document.getElementById(`new-achievement-input-${idx}`) as HTMLInputElement;
+                                      const val = input?.value.trim();
+                                      if (val) {
+                                        const achs = proj.achievements || [];
+                                        const list = (data.projects || []).map((item, pidx) =>
+                                          pidx === idx ? { ...item, achievements: [...achs, val] } : item
+                                        );
+                                        updateData({ ...data, projects: list });
+                                        input.value = "";
+                                      }
+                                    }}
+                                  >
+                                    Add
+                                  </Button>
+                                </div>
+                                <div className="space-y-1 mt-1">
+                                  {(proj.achievements || []).map((ach, aidx) => (
+                                    <div key={aidx} className="flex items-center justify-between bg-muted/30 px-3 py-1.5 rounded border border-border/40 text-xs text-foreground animate-fadeIn">
+                                      <span>• {ach}</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        type="button"
+                                        className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+                                        onClick={() => {
+                                          const list = (data.projects || []).map((item, pidx) =>
+                                            pidx === idx ? { ...item, achievements: (item.achievements || []).filter((_, i) => i !== aidx) } : item
+                                          );
+                                          updateData({ ...data, projects: list });
+                                        }}
+                                      >
+                                        &times;
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        )}
+                      </Card>
+                    );
+                  })
+                )}
               </div>
             )}
 

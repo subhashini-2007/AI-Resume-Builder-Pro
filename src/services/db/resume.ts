@@ -37,6 +37,17 @@ interface ProjectInput {
   url?: string;
   startDate?: string;
   endDate?: string;
+  projectType?: string;
+  duration?: string;
+  technologies?: string;
+  responsibilities?: string;
+  keyFeatures?: string[];
+  achievements?: string[];
+  githubUrl?: string;
+  liveUrl?: string;
+  teamSize?: string;
+  clientName?: string;
+  status?: string;
   order?: number;
 }
 interface CertificationInput {
@@ -248,6 +259,17 @@ export class ResumeService {
           email,
           location,
           website,
+          linkedinUrl: data.linkedinUrl || "",
+          githubUrl: data.githubUrl || "",
+          portfolioUrl: data.portfolioUrl || "",
+          leetcodeUrl: data.leetcodeUrl || "",
+          hackerrankUrl: data.hackerrankUrl || "",
+          kaggleUrl: data.kaggleUrl || "",
+          mediumUrl: data.mediumUrl || "",
+          stackoverflowUrl: data.stackoverflowUrl || "",
+          behanceUrl: data.behanceUrl || "",
+          dribbbleUrl: data.dribbbleUrl || "",
+          otherLinkUrl: data.otherLinkUrl || "",
           avatar,
           selectedTemplate,
           status,
@@ -287,11 +309,22 @@ export class ResumeService {
             create: projects.map((proj: ProjectInput) => ({
               name: proj.name,
               description: proj.description,
-              role: proj.role,
-              url: proj.url,
-              startDate: proj.startDate,
-              endDate: proj.endDate,
-              order: proj.order,
+              role: proj.role || "",
+              url: proj.url || "",
+              startDate: proj.startDate || "",
+              endDate: proj.endDate || "",
+              projectType: proj.projectType || "Personal",
+              duration: proj.duration || "",
+              technologies: proj.technologies || "",
+              responsibilities: proj.responsibilities || "",
+              keyFeatures: proj.keyFeatures || [],
+              achievements: proj.achievements || [],
+              githubUrl: proj.githubUrl || "",
+              liveUrl: proj.liveUrl || "",
+              teamSize: proj.teamSize || "",
+              clientName: proj.clientName || "",
+              status: proj.status || "Completed",
+              order: proj.order || 0,
             })),
           },
           certifications: {

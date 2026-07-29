@@ -84,6 +84,17 @@ model Resume {
   email            String           @default("")
   location         String           @default("")
   website          String           @default("")
+  linkedinUrl      String           @default("")
+  githubUrl        String           @default("")
+  portfolioUrl     String           @default("")
+  leetcodeUrl      String           @default("")
+  hackerrankUrl    String           @default("")
+  kaggleUrl        String           @default("")
+  mediumUrl        String           @default("")
+  stackoverflowUrl String           @default("")
+  behanceUrl       String           @default("")
+  dribbbleUrl      String           @default("")
+  otherLinkUrl     String           @default("")
   avatar           String           @default("") @db.Text
   selectedTemplate String           @default("ats-classic")
   status           DocumentStatus   @default(DRAFT)
@@ -188,13 +199,24 @@ model Project {
   id          String   @id @default(uuid()) @db.Uuid
   resumeId    String   @db.Uuid
   resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-  name        String
-  description String
-  role        String   @default("")
-  url         String   @default("")
-  startDate   String   @default("")
-  endDate     String   @default("")
-  order       Int      @default(0)
+  name             String
+  description      String
+  role             String   @default("")
+  url              String   @default("")
+  startDate        String   @default("")
+  endDate          String   @default("")
+  projectType      String   @default("Personal")
+  duration         String   @default("")
+  technologies     String   @default("")
+  responsibilities String   @default("")
+  keyFeatures      String[] @default([])
+  achievements     String[] @default([])
+  githubUrl        String   @default("")
+  liveUrl          String   @default("")
+  teamSize         String   @default("")
+  clientName       String   @default("")
+  status           String   @default("Completed")
+  order            Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

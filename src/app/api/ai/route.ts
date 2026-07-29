@@ -59,13 +59,50 @@ export async function POST(request: NextRequest) {
         },
       });
     } else if (task === "ai-generate") {
-      const { prompt, actionType } = payload;
+      const { prompt, actionType, writingStyle, experienceLevel, resumeId } = payload;
+      
+      let contextString = "";
+      if (resumeId) {
+        const resume = await prisma.resume.findUnique({
+          where: { id: resumeId },
+          include: {
+            experiences: { orderBy: { order: "asc" } },
+            educations: { orderBy: { order: "asc" } },
+            skills: { orderBy: { order: "asc" } },
+            projects: { orderBy: { order: "asc" } },
+          },
+        });
+        if (resume) {
+          contextString = `
+User's Resume Context:
+- Full Name: ${resume.fullName || ""}
+- Title: ${resume.title || ""}
+- Summary: ${resume.summary || ""}
+- Skills: ${(resume.skills || []).map((s: any) => s.name).join(", ")}
+- Experiences: ${(resume.experiences || []).map((e: any) => `${e.role} at ${e.company} (${e.startDate} - ${e.endDate}): ${e.description}`).join(" | ")}
+- Projects: ${(resume.projects || []).map((p: any) => `${p.name} (${p.projectType}): ${p.description}. Tech: ${p.technologies || ""}`).join(" | ")}
+`;
+        }
+      }
+
+      const promptTemplate = `
+You are an elite, professional resume writer and ATS optimization expert.
+Your task is to perform the following action: "${actionType}"
+User's Input Prompt: "${prompt}"
+Target Experience Level: "${experienceLevel || "Mid Level"}"
+Target Writing Style: "${writingStyle || "Professional"}"
+${contextString ? contextString : ""}
+
+IMPORTANT COMPLIANCE INSTRUCTIONS:
+1. Do NOT invent new companies, employment dates, years of experience, specific metric numbers, projects, certifications, or awards. Any information output must be strictly grounded in the user's prompt or context.
+2. Optimize and polish existing text for grammar, structure, tone, impact, and ATS keywords while remaining strictly faithful to the factual details.
+3. Output the result in clean, well-formatted markdown. Do not wrap in extra conversational text; return only the suggestions or optimized content.
+`;
+
       if (isMock) {
-        responseText = `### AI Suggestions for: "${prompt}"\n\n**Summary Statement Recommendation**:\n*"Result-driven Senior Developer with 6+ years of expertise leading engineering squads to scale responsive SaaS platforms. Expert in Next.js 15, React 19, and cloud infrastructure..."*\n\n**Key Bullet Additions**:\n- *"Spearheaded the migration of legacy client panels to Next.js 15, increasing page speed by 35% and improving Web Vitals scores to 98%."*\n- *"Coordinated cross-functional teams of 8 developers using Agile methodologies, delivering product launches 2 weeks ahead of schedule."*`;
+        responseText = `### Factual AI Suggestion (${writingStyle} / ${experienceLevel})\n\nBased on your request "${prompt}" and provided context:\n\n*   **Optimized Phrasing**: *"Designed and deployed full-stack web architectures utilizing modern frameworks, improving load responsiveness and code structure."*\n*   **Recommended ATS Keywords**: *web architecture, front-end optimization, full-stack development*`;
       } else {
-        responseText = await callGemini(
-          `You are an expert resume writer. Perform the action '${actionType}' on the following input: '${prompt}'. Return clean suggestions formatted in markdown.`
-        );
+        responseText = await callGemini(promptTemplate);
       }
     } else if (task === "ats-scan") {
       const { jobTitle, resumeContent } = payload;
