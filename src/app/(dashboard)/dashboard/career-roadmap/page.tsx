@@ -28,17 +28,33 @@ interface RoadmapStep {
   status: "Completed" | "In Progress" | "Upcoming";
 }
 
+interface RoadmapSkillItem {
+  name: string;
+}
+
+interface RoadmapEducationItem {
+  school?: string;
+  degree?: string;
+}
+
+interface RoadmapResumeItem {
+  id: string;
+  title: string;
+  fullName?: string;
+  skills?: RoadmapSkillItem[];
+  educations?: RoadmapEducationItem[];
+}
+
 export default function CareerRoadmapPage() {
   const { toast } = useToast();
   
-  const [savedResumes, setSavedResumes] = React.useState<any[]>([]);
+  const [savedResumes, setSavedResumes] = React.useState<RoadmapResumeItem[]>([]);
   const [selectedResumeId, setSelectedResumeId] = React.useState<string>("");
   const [isGenerating, setIsGenerating] = React.useState(false);
   
   // Roadmap input parameters
   const [dreamRole, setDreamRole] = React.useState("Frontend Engineer");
   const [dreamCompany, setDreamCompany] = React.useState("Google");
-  const [gradYear, setGradYear] = React.useState("2026");
   const [currentSemester, setCurrentSemester] = React.useState("5th Semester");
   const [currentCgpa, setCurrentCgpa] = React.useState("8.5");
   const [hoursPerWeek, setHoursPerWeek] = React.useState("15");
@@ -83,7 +99,7 @@ export default function CareerRoadmapPage() {
 
     const chosenResume = savedResumes.find((r) => r.id === selectedResumeId);
     const resumeText = chosenResume
-      ? `Skills: ${(chosenResume.skills || []).map((s: any) => s.name).join(", ")}. Education: ${(chosenResume.educations || []).map((edu: any) => `${edu.degree} from ${edu.school}`).join(" | ")}`
+      ? `Skills: ${(chosenResume.skills || []).map((s: RoadmapSkillItem) => s.name).join(", ")}. Education: ${(chosenResume.educations || []).map((edu: RoadmapEducationItem) => `${edu.degree} from ${edu.school}`).join(" | ")}`
       : "";
 
     try {
@@ -132,7 +148,7 @@ export default function CareerRoadmapPage() {
     }
   };
 
-  const getMockRoadmapData = (role: string, company: string, sem: string): RoadmapStep[] => {
+  const getMockRoadmapData = (role: string, company: string, _sem: string): RoadmapStep[] => {
     return [
       {
         title: "Core Skill Mastery & Codebase Contributions",

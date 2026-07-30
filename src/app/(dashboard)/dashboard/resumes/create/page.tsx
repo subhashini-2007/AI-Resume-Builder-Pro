@@ -35,8 +35,6 @@ import {
   Award,
   Palette,
   CheckCircle,
-  Calendar,
-  MapPin,
   Activity,
   BookOpen,
 } from "lucide-react";
@@ -258,7 +256,6 @@ export default function CreateResumePage() {
   const [showPreviewMobile, setShowPreviewMobile] = React.useState(false);
   const [isPageLoading, setIsPageLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [profilesCollapsed, setProfilesCollapsed] = React.useState(false);
   const [collapsedProjects, setCollapsedProjects] = React.useState<Record<string, boolean>>({});
 
   // Drag and drop states
@@ -349,14 +346,29 @@ export default function CreateResumePage() {
     const actionVerbsRegex = /^(developed|built|architected|led|created|managed|designed|implemented|streamlined|formulated|compiled|optimized|engineered)/i;
     const missingActionVerbs = (data.projects || []).some(p => p.description && !actionVerbsRegex.test(p.description.trim()));
     if (missingActionVerbs) {
-      list.push("Missing action verbs: start project bullet points with active verbs (e.g. 'Architected...', 'Streamlined...').");
+      list.push("Summary statement is too short or missing. Add 2-3 lines highlighting career goals and top skills.");
     }
-
-    // 6. ATS keyword improvements
-    if (!data.skills || data.skills.length < 4) {
-      list.push("ATS keyword improvements: add at least 5 structured skills across technical, tools, databases and languages.");
+    const hasMeasurable =
+      data.personalInfo.summary.includes("%") ||
+      data.personalInfo.summary.match(/\b\d+\b/) ||
+      data.experiences.some(
+        (e) => e.description.includes("%") || e.description.match(/\b\d+\b/)
+      );
+    if (!hasMeasurable) {
+      list.push("Add metrics or numbers (e.g. 'improved efficiency by 15%', 'won 2nd place out of 50 teams') to stand out.");
     }
-
+    const actionVerbs = ["led", "developed", "built", "created", "managed", "designed", "optimized", "implemented", "achieved"];
+    const hasAction = data.experiences.some((e) =>
+      actionVerbs.some((v) => e.description.toLowerCase().includes(v))
+    );
+    if (!hasAction && data.experiences.length > 0) {
+      list.push("Start experience descriptions with action verbs (e.g. Built, Optimized, Led) rather than passive voice.");
+    }
+    (data.projects || []).forEach((p) => {
+      if (!p.technologies) {
+        list.push(`Project "${p.name || 'Untitled'}" is missing technologies used. List tools like React, Node, Python.`);
+      }
+    });
     return list;
   }, [data]);
 
@@ -384,6 +396,10 @@ export default function CreateResumePage() {
 
   // 1. Force ID parameter redirect
   React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlId = params.get("id");
+    if (urlId) return;
+
     if (!id) {
       async function createDraft() {
         try {
@@ -393,7 +409,7 @@ export default function CreateResumePage() {
             headers: { "Content-Type": "application/json" },
           });
           const json = await res.json();
-          if (json.success) {
+          if (json.success && json.data?.id) {
             router.replace(`/dashboard/resumes/create?id=${json.data.id}`);
           } else {
             toast({
@@ -422,12 +438,14 @@ export default function CreateResumePage() {
   // 2. Fetch data from backend on load
   React.useEffect(() => {
     if (!id) return;
+
     async function loadResume() {
       try {
         setIsPageLoading(true);
         const res = await fetch(`/api/resumes/${id}`);
         const json = await res.json();
-        if (json.success) {
+
+        if (json.success && json.data) {
           const fetched = json.data as DBResumeData;
           setData({
             personalInfo: {
@@ -466,7 +484,7 @@ export default function CreateResumePage() {
               endDate: e.endDate || "",
               description: e.description || "",
             })),
-            educations: (fetched.educations || []).map((edu: any) => ({
+            educations: (fetched.educations || []).map((edu: DBEducation) => ({
               id: edu.id,
               school: edu.school || "",
               degree: edu.degree || "",
@@ -530,6 +548,7 @@ export default function CreateResumePage() {
               phone: r.phone || "",
             })),
           });
+
           if (fetched.selectedTemplate) {
             const parts = fetched.selectedTemplate.split("?");
             setSelectedTemplate(parts[0]);
@@ -886,34 +905,7 @@ export default function CreateResumePage() {
     }, 50);
   };
 
-  // Experience array manipulation
-  const addExperience = () => {
-    const newExp = {
-      id: Math.random().toString(36).substring(2, 9),
-      company: "",
-      role: "",
-      startDate: "",
-      endDate: "",
-      description: "",
-    };
-    updateData({ ...data, experiences: [...data.experiences, newExp] });
-    toast({ title: "Experience Added", description: "New blank experience section added." });
-  };
 
-  const removeExperience = (expId: string) => {
-    updateData({ ...data, experiences: data.experiences.filter((exp) => exp.id !== expId) });
-    toast({ title: "Experience Removed", description: "Experience section deleted." });
-  };
-
-  const shiftExperience = (index: number, direction: "up" | "down") => {
-    const list = [...data.experiences];
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= list.length) return;
-    const temp = list[index];
-    list[index] = list[target];
-    list[target] = temp;
-    updateData({ ...data, experiences: list });
-  };
 
   // Education array manipulation
   const addEducation = () => {
@@ -941,15 +933,7 @@ export default function CreateResumePage() {
     updateData({ ...data, educations: list });
   };
 
-  // Skills string manipulation
-  const addSkill = (skill: string) => {
-    if (!skill.trim() || data.skills.includes(skill.trim())) return;
-    updateData({ ...data, skills: [...data.skills, skill.trim()] });
-  };
 
-  const removeSkill = (skill: string) => {
-    updateData({ ...data, skills: data.skills.filter((s) => s !== skill) });
-  };
 
   // Project array manipulation
   const addProject = () => {
@@ -1749,7 +1733,7 @@ export default function CreateResumePage() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
                   className={cn(
                     "flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition-all duration-200",
                     activeTab === tab.id

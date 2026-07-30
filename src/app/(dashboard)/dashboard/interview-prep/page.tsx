@@ -13,8 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import {
-  Play,
-  Award,
   Loader2,
   CheckCircle2,
   AlertCircle,
@@ -36,10 +34,21 @@ interface InterviewQuestion {
   followUp: string[];
 }
 
+interface InterviewResumeItem {
+  id: string;
+  fullName?: string;
+  title?: string;
+  summary?: string;
+  skills?: Array<{ name: string }>;
+  experiences?: Array<{ role: string; company: string; description: string }>;
+  educations?: Array<{ degree: string; school: string }>;
+  projects?: Array<{ name: string; description: string; role?: string; technologies?: string }>;
+}
+
 export default function InterviewPrepPage() {
   const { toast } = useToast();
   
-  const [savedResumes, setSavedResumes] = React.useState<any[]>([]);
+  const [savedResumes, setSavedResumes] = React.useState<InterviewResumeItem[]>([]);
   const [selectedResumeId, setSelectedResumeId] = React.useState<string>("");
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"all" | "hr" | "tech" | "project" | "intern" | "behavioral" | "coding" | "favorites">("all");
@@ -76,7 +85,7 @@ export default function InterviewPrepPage() {
     fetchResumes();
   }, []);
 
-  const handleGenerateQuestions = async (mode: "standard" | "mock" | "random" = "standard") => {
+  const handleGenerateQuestions = async (_mode: "standard" | "mock" | "random" = "standard") => {
     if (!selectedResumeId) {
       toast({
         title: "Select Resume",
@@ -92,16 +101,6 @@ export default function InterviewPrepPage() {
     setFeedback(null);
 
     const chosenResume = savedResumes.find((r) => r.id === selectedResumeId);
-    const resumeDetailsText = chosenResume
-      ? `
-        Title: ${chosenResume.title || ""}
-        Summary: ${chosenResume.summary || ""}
-        Skills: ${(chosenResume.skills || []).map((s: any) => s.name).join(", ")}
-        Projects: ${(chosenResume.projects || []).map((p: any) => `${p.name} - Role: ${p.role}. Tech: ${p.technologies}`).join(" | ")}
-        Experiences: ${(chosenResume.experiences || []).map((e: any) => `${e.role} at ${e.company}: ${e.description}`).join(" | ")}
-        Educations: ${(chosenResume.educations || []).map((edu: any) => `${edu.degree} from ${edu.school}`).join(" | ")}
-      `
-      : "";
 
     try {
       // Leverage the existing /api/ai POST with task 'ai-generate'
@@ -153,18 +152,18 @@ export default function InterviewPrepPage() {
     }
   };
 
-  const parseInterviewText = (aiText: any, resume: any): InterviewQuestion[] => {
+  const parseInterviewText = (aiText: unknown, resume: InterviewResumeItem | undefined): InterviewQuestion[] => {
     // If the API already returned a parsed array/object structure:
-    if (typeof aiText === "object" && Array.isArray(aiText)) {
-      return aiText.map((q: any, i: number) => ({
-        id: q.id || `ai-${i}`,
-        title: q.title || "Describe a challenging technical problem you solved.",
-        type: q.type || "Technical",
-        difficulty: q.difficulty || "Medium",
-        idealAnswer: q.idealAnswer || "Ensure to focus on your specific project achievements.",
-        keyPoints: q.keyPoints || ["Situation", "Task", "Action", "Result"],
-        tips: q.tips || "Mention key metrics if possible.",
-        followUp: q.followUp || ["What would you do differently next time?"],
+    if (Array.isArray(aiText)) {
+      return (aiText as Record<string, unknown>[]).map((q, i) => ({
+        id: (q.id as string) || `ai-${i}`,
+        title: (q.title as string) || "Describe a challenging technical problem you solved.",
+        type: (q.type as InterviewQuestion["type"]) || "Technical",
+        difficulty: (q.difficulty as InterviewQuestion["difficulty"]) || "Medium",
+        idealAnswer: (q.idealAnswer as string) || "Ensure to focus on your specific project achievements.",
+        keyPoints: Array.isArray(q.keyPoints) ? (q.keyPoints as string[]) : ["Situation", "Task", "Action", "Result"],
+        tips: (q.tips as string) || "Mention key metrics if possible.",
+        followUp: Array.isArray(q.followUp) ? (q.followUp as string[]) : ["What would you do differently next time?"],
       }));
     }
 
@@ -172,10 +171,9 @@ export default function InterviewPrepPage() {
     return getMockResumeAwareQuestions(resume);
   };
 
-  const getMockResumeAwareQuestions = (resume: any): InterviewQuestion[] => {
+  const getMockResumeAwareQuestions = (resume: InterviewResumeItem | undefined): InterviewQuestion[] => {
     const name = resume?.fullName || "Candidate";
     const mainSkill = (resume?.skills?.[0]?.name) || "React";
-    const secondSkill = (resume?.skills?.[1]?.name) || "SQL";
     const projName = (resume?.projects?.[0]?.name) || "Portfolio System";
     const internRole = (resume?.experiences?.[0]?.role) || "Software Engineer Intern";
     const internComp = (resume?.experiences?.[0]?.company) || "Tech Solutions Ltd";
@@ -469,7 +467,7 @@ Tips: ${q.tips}
                 ].map((tb) => (
                   <button
                     key={tb.id}
-                    onClick={() => setActiveTab(tb.id as any)}
+                    onClick={() => setActiveTab(tb.id as typeof activeTab)}
                     className={`rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-all border ${
                       activeTab === tb.id
                         ? "bg-primary border-primary text-primary-foreground"

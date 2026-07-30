@@ -59,8 +59,8 @@ export default function AiGeneratorPage() {
   const [careerGoal, setCareerGoal] = React.useState("Become a full stack web engineer");
   const [dreamCompany, setDreamCompany] = React.useState("Google");
   const [targetJob, setTargetJob] = React.useState("Software Engineer Intern");
-  const [targetCountry, setTargetCountry] = React.useState("USA");
-  const [industry, setIndustry] = React.useState("Information Technology");
+  const [targetCountry] = React.useState("USA");
+  const [industry] = React.useState("Information Technology");
 
   const handleGenerate = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();

@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
     const draft = await ResumeService.createEmptyDraft(userId);
     return handleApiSuccess(draft, 201);
   } catch (error) {
+    console.error("[API ERROR] Failed to create empty draft:", error);
     return handleApiError(error);
   }
 }

@@ -17,7 +17,6 @@ import {
   ShieldAlert,
   CheckCircle,
   RefreshCw,
-  FileText,
   Download,
   AlertTriangle,
   Check,
@@ -25,6 +24,17 @@ import {
   Sparkles,
   Info
 } from "lucide-react";
+
+interface AtsResumeItem {
+  id: string;
+  fullName?: string;
+  title?: string;
+  summary?: string;
+  skills?: Array<{ name: string }>;
+  experiences?: Array<{ role: string; company: string; description: string }>;
+  educations?: Array<{ degree: string; school: string }>;
+  projects?: Array<{ name: string; description: string }>;
+}
 
 interface AtsReport {
   score: number;
@@ -52,7 +62,7 @@ export default function AtsCheckerPage() {
   const [isScanning, setIsScanning] = React.useState(false);
   const [jobTitle, setJobTitle] = React.useState("Frontend Developer");
   
-  const [savedResumes, setSavedResumes] = React.useState<any[]>([]);
+  const [savedResumes, setSavedResumes] = React.useState<AtsResumeItem[]>([]);
   const [selectedResumeId, setSelectedResumeId] = React.useState<string>("");
   const [uploadedFileName, setUploadedFileName] = React.useState<string>("");
   const [uploadedText, setUploadedText] = React.useState<string>("");
@@ -140,10 +150,10 @@ export default function AtsCheckerPage() {
         Full Name: ${chosen.fullName || ""}
         Title: ${chosen.title || ""}
         Summary: ${chosen.summary || ""}
-        Skills: ${(chosen.skills || []).map((s: any) => s.name).join(", ")}
-        Experiences: ${(chosen.experiences || []).map((e: any) => `${e.role} at ${e.company}: ${e.description}`).join(" | ")}
-        Educations: ${(chosen.educations || []).map((edu: any) => `${edu.degree} from ${edu.school}`).join(" | ")}
-        Projects: ${(chosen.projects || []).map((p: any) => `${p.name} - ${p.description}`).join(" | ")}
+        Skills: ${(chosen.skills || []).map((s: { name: string }) => s.name).join(", ")}
+        Experiences: ${(chosen.experiences || []).map((e: { role: string; company: string; description: string }) => `${e.role} at ${e.company}: ${e.description}`).join(" | ")}
+        Educations: ${(chosen.educations || []).map((edu: { degree: string; school: string }) => `${edu.degree} from ${edu.school}`).join(" | ")}
+        Projects: ${(chosen.projects || []).map((p: { name: string; description: string }) => `${p.name} - ${p.description}`).join(" | ")}
       `;
     } else {
       // Current resume (use most recently updated or first resume)
@@ -162,10 +172,10 @@ export default function AtsCheckerPage() {
         Full Name: ${chosen.fullName || ""}
         Title: ${chosen.title || ""}
         Summary: ${chosen.summary || ""}
-        Skills: ${(chosen.skills || []).map((s: any) => s.name).join(", ")}
-        Experiences: ${(chosen.experiences || []).map((e: any) => `${e.role} at ${e.company}: ${e.description}`).join(" | ")}
-        Educations: ${(chosen.educations || []).map((edu: any) => `${edu.degree} from ${edu.school}`).join(" | ")}
-        Projects: ${(chosen.projects || []).map((p: any) => `${p.name} - ${p.description}`).join(" | ")}
+        Skills: ${(chosen.skills || []).map((s: { name: string }) => s.name).join(", ")}
+        Experiences: ${(chosen.experiences || []).map((e: { role: string; company: string; description: string }) => `${e.role} at ${e.company}: ${e.description}`).join(" | ")}
+        Educations: ${(chosen.educations || []).map((edu: { degree: string; school: string }) => `${edu.degree} from ${edu.school}`).join(" | ")}
+        Projects: ${(chosen.projects || []).map((p: { name: string; description: string }) => `${p.name} - ${p.description}`).join(" | ")}
       `;
     }
 

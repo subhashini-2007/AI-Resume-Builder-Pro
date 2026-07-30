@@ -17,6 +17,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return handleApiSuccess(resume);
   } catch (error) {
+    console.error("[API ERROR] Failed to fetch resume details:", error);
     return handleApiError(error);
   }
 }
@@ -32,6 +33,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     return handleApiSuccess(updated);
   } catch (error) {
+    console.error("[API ERROR] Failed to update resume details:", error);
     return handleApiError(error);
   }
 }
