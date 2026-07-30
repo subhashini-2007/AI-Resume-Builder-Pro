@@ -2,6 +2,7 @@
 
 
 import * as React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -311,6 +312,28 @@ export default function CreateResumePage() {
   const [newVersionTitle, setNewVersionTitle] = React.useState("");
   const [compareSourceVersionId, setCompareSourceVersionId] = React.useState<string | null>(null);
   const [compareTargetVersionId, setCompareTargetVersionId] = React.useState<string | null>(null);
+  const [isAiSuggestionsOpen, setIsAiSuggestionsOpen] = React.useState(false);
+
+  const handleSuggestionClick = React.useCallback((suggestion: string) => {
+    const lower = suggestion.toLowerCase();
+    if (lower.includes("summary")) {
+      setActiveTab("personal");
+    } else if (lower.includes("project")) {
+      setActiveTab("projects");
+    } else if (
+      lower.includes("experience") ||
+      lower.includes("metric") ||
+      lower.includes("number") ||
+      lower.includes("action verb") ||
+      lower.includes("measurable")
+    ) {
+      setActiveTab("experience");
+    } else if (lower.includes("tech") || lower.includes("skill")) {
+      setActiveTab("skills");
+    } else {
+      setActiveTab("personal");
+    }
+  }, []);
 
   const computedSuggestions = React.useMemo(() => {
     const list: string[] = [];
@@ -1748,27 +1771,7 @@ export default function CreateResumePage() {
             })}
           </div>
 
-          {/* AI Suggestions Panel */}
-          {computedSuggestions.length > 0 && (
-            <Card className="border-amber-500/30 bg-amber-500/5 shadow-sm">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
-                  <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" />
-                  AI Improvement Suggestions ({computedSuggestions.length})
-                </div>
-                <ul className="mt-1.5 list-disc list-inside space-y-1 text-[10px] text-amber-800/90 dark:text-amber-300/90 leading-relaxed pl-1">
-                  {computedSuggestions.slice(0, 3).map((s, idx) => (
-                    <li key={idx}>{s}</li>
-                  ))}
-                  {computedSuggestions.length > 3 && (
-                    <li className="list-none font-semibold text-[9px] text-muted-foreground mt-0.5">
-                      + {computedSuggestions.length - 3} more suggestions...
-                    </li>
-                  )}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
+
 
           {/* Form Content */}
           <div className="min-h-[300px] flex-1">
@@ -4581,7 +4584,114 @@ export default function CreateResumePage() {
             </div>
           </div>
         </div>
+      {/* Floating AI Assistant Button */}
+      {computedSuggestions.length > 0 && (
+        <div className="fixed bottom-6 right-6 z-40">
+          <Button
+            variant="default"
+            size="lg"
+            onClick={() => setIsAiSuggestionsOpen(true)}
+            className="relative flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 hover:bg-amber-600 shadow-xl border border-amber-400/20 text-white transition-all duration-300 transform hover:scale-110 active:scale-95 group"
+          >
+            <Sparkles className="h-6 w-6 animate-pulse group-hover:rotate-12 transition-transform duration-300" />
+            {/* Count Badge */}
+            <span className="absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-[11px] font-bold text-white border-2 border-background animate-bounce shadow-md">
+              {computedSuggestions.length}
+            </span>
+          </Button>
+        </div>
       )}
+
+      {/* AI Suggestions Side Sheet */}
+      <AnimatePresence>
+        {isAiSuggestionsOpen && (
+          <>
+            {/* Backdrop overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.4 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAiSuggestionsOpen(false)}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            />
+
+            {/* Panel Sheet */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="fixed inset-y-0 right-0 z-50 w-full max-w-md border-l border-border/40 bg-card shadow-2xl flex flex-col h-full glassmorphism"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-border/40 px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-amber-500 animate-pulse" />
+                  <h3 className="font-bold text-foreground text-sm">
+                    AI Suggestions ({computedSuggestions.length})
+                  </h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsAiSuggestionsOpen(false)}
+                  className="h-8 w-8 p-0 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground"
+                >
+                  <span className="sr-only">Close</span>
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </Button>
+              </div>
+
+              {/* Body content */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Based on ATS best practices, here are suggestions to optimize your resume score:
+                </p>
+
+                <div className="space-y-3">
+                  {computedSuggestions.map((s, idx) => (
+                    <motion.div
+                      key={idx}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      onClick={() => {
+                        handleSuggestionClick(s);
+                        if (window.innerWidth < 768) {
+                          setIsAiSuggestionsOpen(false);
+                        }
+                      }}
+                      className="group relative cursor-pointer rounded-xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 p-4 transition-all duration-300 shadow-sm overflow-hidden"
+                    >
+                      <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 group-hover:bg-amber-600 transition-colors" />
+                      <div className="flex items-start gap-3 pl-1">
+                        <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
+                          {idx + 1}
+                        </span>
+                        <div className="space-y-1.5 flex-1">
+                          <p className="text-xs text-foreground group-hover:text-primary transition-colors leading-relaxed">
+                            {s}
+                          </p>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-600 dark:text-amber-400 group-hover:underline">
+                            Fix suggestion →
+                          </span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

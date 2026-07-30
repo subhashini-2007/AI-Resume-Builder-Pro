@@ -12,27 +12,35 @@ interface RouteGuardProps {
 export function RouteGuard({ children }: RouteGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [authorized, setAuthorized] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
+  
+  const [authorized, setAuthorized] = React.useState(() => {
+    if (typeof window === "undefined") return false;
+    const isDashboardRoute = pathname.startsWith("/dashboard");
+    const isPublicDashboardRoute = pathname.startsWith("/templates");
+    if (isDashboardRoute && !isPublicDashboardRoute) {
+      return authService.isAuthenticated();
+    }
+    return true;
+  });
+
+  const [loading, setLoading] = React.useState(() => {
+    if (typeof window === "undefined") return true;
+    const isDashboardRoute = pathname.startsWith("/dashboard");
+    const isPublicDashboardRoute = pathname.startsWith("/templates");
+    if (isDashboardRoute && !isPublicDashboardRoute) {
+      return !authService.isAuthenticated();
+    }
+    return false;
+  });
 
   React.useEffect(() => {
     let active = true;
 
     async function verifySession() {
-      const clientAuth = authService.isAuthenticated();
       const isDashboardRoute = pathname.startsWith("/dashboard");
       const isPublicDashboardRoute = pathname.startsWith("/templates");
 
       if (isDashboardRoute && !isPublicDashboardRoute) {
-        if (!clientAuth) {
-          if (active) {
-            setAuthorized(false);
-            router.push("/login");
-            setLoading(false);
-          }
-          return;
-        }
-
         try {
           const res = await fetch("/api/auth/me");
           if (!res.ok) {
@@ -42,22 +50,26 @@ export function RouteGuard({ children }: RouteGuardProps) {
           if (!json.success) {
             throw new Error("Session invalid");
           }
+
+          if (typeof window !== "undefined" && json.data) {
+            localStorage.setItem("auth_user", JSON.stringify(json.data));
+          }
+
           if (active) {
             setAuthorized(true);
             setLoading(false);
           }
-        } catch {
-          // Clear all localStorage, sessionStorage, and cookies
+        } catch (err) {
+          console.warn("Session verification failed:", err);
           if (typeof window !== "undefined") {
             localStorage.removeItem("auth_user");
             localStorage.clear();
             sessionStorage.clear();
-            document.cookie = "session_token=; path=/; max-age=0; SameSite=Lax";
           }
           if (active) {
             setAuthorized(false);
-            router.push("/login?expired=true");
             setLoading(false);
+            router.push("/login?expired=true");
           }
         }
       } else {

@@ -35,6 +35,8 @@ export function handleApiError(error: unknown) {
     rawMessage.includes("Environment variable not found: DATABASE_URL") ||
     rawMessage.includes("Can't reach database server");
 
+
+
   if (isPrismaError) {
     console.error("[DB ERR] Prisma/Database failure:", rawMessage);
     errorSummary = "Database Connection Error";
@@ -50,7 +52,7 @@ export function handleApiError(error: unknown) {
     errorSummary = rawMessage;
   }
 
-  return NextResponse.json(
+  const response = NextResponse.json(
     {
       success: false,
       message: errorSummary,
@@ -60,6 +62,17 @@ export function handleApiError(error: unknown) {
     },
     { status }
   );
+
+  if (status === 401) {
+    response.cookies.set("session_token", "", {
+      path: "/",
+      maxAge: 0,
+      httpOnly: true,
+      sameSite: "lax",
+    });
+  }
+
+  return response;
 }
 
 export function handleApiSuccess<T>(data: T, status = 200, message = "Success") {

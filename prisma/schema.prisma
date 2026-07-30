@@ -1,61 +1,41 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
-generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
-}
-
-enum Plan {
-  FREE
-  PRO
-  ENTERPRISE
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  CANCELED
-  EXPIRED
-}
-
-enum DocumentStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
-}
-
 model User {
-  id           String        @id @default(uuid()) @db.Uuid
-  email        String        @unique
-  passwordHash String
-  name         String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  deletedAt    DateTime?
-
-  settings     UserSettings?
-  subscription Subscription?
-  resumes      Resume[]
-  coverLetters CoverLetter[]
-  aiHistory    AIHistory[]
+  id            String         @id @default(uuid()) @db.Uuid
+  email         String         @unique
+  passwordHash  String
+  name          String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+  aiHistory     AIHistory[]
+  coverLetters  CoverLetter[]
   notifications Notification[]
-  tasks        UserTask[]
+  resumes       Resume[]
+  subscription  Subscription?
+  settings      UserSettings?
+  tasks         UserTask[]
 
   @@index([email])
 }
 
-
 model UserSettings {
   id                 String   @id @default(uuid()) @db.Uuid
   userId             String   @unique @db.Uuid
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   theme              String   @default("system")
   emailNotifications Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -63,64 +43,63 @@ model UserSettings {
 model Subscription {
   id               String             @id @default(uuid()) @db.Uuid
   userId           String             @unique @db.Uuid
-  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan             Plan               @default(FREE)
   status           SubscriptionStatus @default(ACTIVE)
   currentPeriodEnd DateTime?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model Resume {
-  id               String           @id @default(uuid()) @db.Uuid
-  userId           String           @db.Uuid
-  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title            String           @default("Untitled Resume")
-  summary          String           @default("")
-  fullName         String           @default("")
-  phone            String           @default("")
-  email            String           @default("")
-  location         String           @default("")
-  website          String           @default("")
-  linkedinUrl      String           @default("")
-  githubUrl        String           @default("")
-  portfolioUrl     String           @default("")
-  leetcodeUrl      String           @default("")
-  hackerrankUrl    String           @default("")
-  kaggleUrl        String           @default("")
-  mediumUrl        String           @default("")
-  stackoverflowUrl String           @default("")
-  behanceUrl       String           @default("")
-  dribbbleUrl      String           @default("")
-  twitterUrl       String           @default("")
-  youtubeUrl       String           @default("")
-  devtoUrl         String           @default("")
-  researchgateUrl  String           @default("")
-  orcidUrl         String           @default("")
-  googleScholarUrl String           @default("")
-  otherLinkLabel   String           @default("")
-  otherLinkUrl     String           @default("")
-  avatar           String           @default("") @db.Text
-  selectedTemplate String           @default("ats-classic")
-  status           DocumentStatus   @default(DRAFT)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  id               String          @id @default(uuid()) @db.Uuid
+  userId           String          @db.Uuid
+  title            String          @default("Untitled Resume")
+  summary          String          @default("")
+  selectedTemplate String          @default("ats-classic")
+  status           DocumentStatus  @default(DRAFT)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
   deletedAt        DateTime?
-
-  versions         ResumeVersion[]
-  sections         ResumeSection[]
-  experiences      Experience[]
-  educations       Education[]
-  skills           Skill[]
-  projects         Project[]
-  certifications   Certification[]
-  languages        Language[]
-  awards           Award[]
-  interests        Interest[]
-  references       Reference[]
+  avatar           String          @default("")
+  email            String          @default("")
+  fullName         String          @default("")
+  location         String          @default("")
+  phone            String          @default("")
+  website          String          @default("")
+  behanceUrl       String          @default("")
+  devtoUrl         String          @default("")
+  dribbbleUrl      String          @default("")
+  githubUrl        String          @default("")
+  googleScholarUrl String          @default("")
+  hackerrankUrl    String          @default("")
+  kaggleUrl        String          @default("")
+  leetcodeUrl      String          @default("")
+  linkedinUrl      String          @default("")
+  mediumUrl        String          @default("")
+  orcidUrl         String          @default("")
+  otherLinkLabel   String          @default("")
+  otherLinkUrl     String          @default("")
+  portfolioUrl     String          @default("")
+  researchgateUrl  String          @default("")
+  stackoverflowUrl String          @default("")
+  twitterUrl       String          @default("")
+  youtubeUrl       String          @default("")
   atsReports       ATSReport[]
+  awards           Award[]
+  certifications   Certification[]
+  educations       Education[]
+  experiences      Experience[]
+  interests        Interest[]
+  languages        Language[]
+  projects         Project[]
+  references       Reference[]
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections         ResumeSection[]
+  versions         ResumeVersion[]
+  skills           Skill[]
 
   @@index([userId])
   @@index([status])
@@ -129,11 +108,11 @@ model Resume {
 model ResumeVersion {
   id        String   @id @default(uuid()) @db.Uuid
   resumeId  String   @db.Uuid
-  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   title     String
   data      Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
 }
@@ -141,13 +120,13 @@ model ResumeVersion {
 model ResumeSection {
   id        String   @id @default(uuid()) @db.Uuid
   resumeId  String   @db.Uuid
-  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   title     String
   order     Int      @default(0)
   isVisible Boolean  @default(true)
   type      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
 }
@@ -155,7 +134,6 @@ model ResumeSection {
 model Experience {
   id          String   @id @default(uuid()) @db.Uuid
   resumeId    String   @db.Uuid
-  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   company     String
   role        String
   startDate   String
@@ -166,6 +144,7 @@ model Experience {
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
 }
@@ -173,7 +152,6 @@ model Experience {
 model Education {
   id           String   @id @default(uuid()) @db.Uuid
   resumeId     String   @db.Uuid
-  resume       Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   school       String
   degree       String
   fieldOfStudy String   @default("")
@@ -184,6 +162,7 @@ model Education {
   order        Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  resume       Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
 }
@@ -191,42 +170,42 @@ model Education {
 model Skill {
   id        String   @id @default(uuid()) @db.Uuid
   resumeId  String   @db.Uuid
-  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   name      String
   level     String   @default("Intermediate")
   category  String   @default("")
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
 }
 
 model Project {
-  id          String   @id @default(uuid()) @db.Uuid
-  resumeId    String   @db.Uuid
-  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  id               String   @id @default(uuid()) @db.Uuid
+  resumeId         String   @db.Uuid
   name             String
   description      String
   role             String   @default("")
   url              String   @default("")
   startDate        String   @default("")
   endDate          String   @default("")
-  projectType      String   @default("Personal")
-  duration         String   @default("")
-  technologies     String   @default("")
-  responsibilities String   @default("")
-  keyFeatures      String[] @default([])
-  achievements     String[] @default([])
-  githubUrl        String   @default("")
-  liveUrl          String   @default("")
-  documentationUrl String   @default("")
-  teamSize         String   @default("")
-  clientName       String   @default("")
-  status           String   @default("Completed")
   order            Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  achievements     String[] @default([])
+  clientName       String   @default("")
+  documentationUrl String   @default("")
+  duration         String   @default("")
+  githubUrl        String   @default("")
+  keyFeatures      String[] @default([])
+  liveUrl          String   @default("")
+  projectType      String   @default("Personal")
+  responsibilities String   @default("")
+  status           String   @default("Completed")
+  teamSize         String   @default("")
+  technologies     String   @default("")
+  resume           Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
 }
@@ -234,7 +213,6 @@ model Project {
 model Certification {
   id         String   @id @default(uuid()) @db.Uuid
   resumeId   String   @db.Uuid
-  resume     Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   name       String
   issuer     String
   issueDate  String   @default("")
@@ -243,6 +221,7 @@ model Certification {
   order      Int      @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  resume     Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
 }
@@ -250,12 +229,12 @@ model Certification {
 model Language {
   id          String   @id @default(uuid()) @db.Uuid
   resumeId    String   @db.Uuid
-  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   name        String
   proficiency String   @default("Full Professional")
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
 }
@@ -263,7 +242,6 @@ model Language {
 model Award {
   id          String   @id @default(uuid()) @db.Uuid
   resumeId    String   @db.Uuid
-  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   title       String
   issuer      String
   date        String
@@ -271,6 +249,7 @@ model Award {
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  resume      Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
 }
@@ -278,11 +257,11 @@ model Award {
 model Interest {
   id        String   @id @default(uuid()) @db.Uuid
   resumeId  String   @db.Uuid
-  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   name      String
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
 }
@@ -290,7 +269,6 @@ model Interest {
 model Reference {
   id        String   @id @default(uuid()) @db.Uuid
   resumeId  String   @db.Uuid
-  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   name      String
   title     String
   company   String
@@ -299,6 +277,7 @@ model Reference {
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
 }
@@ -318,13 +297,13 @@ model ResumeTemplate {
 model CoverLetter {
   id        String    @id @default(uuid()) @db.Uuid
   userId    String    @db.Uuid
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   jobTitle  String
   company   String
   body      String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -332,26 +311,26 @@ model CoverLetter {
 model ATSReport {
   id        String   @id @default(uuid()) @db.Uuid
   resumeId  String   @db.Uuid
-  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   jobTitle  String
   score     Int
   details   Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   @@index([resumeId])
 }
 
 model AIHistory {
-  id         String   @id @default(uuid()) @db.Uuid
-  userId     String   @db.Uuid
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  actionType String
-  prompt     String
-  response   String
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  actionType  String
+  prompt      String
+  response    String
   creditsUsed Int      @default(1)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -359,13 +338,13 @@ model AIHistory {
 model Notification {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @db.Uuid
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   message   String
   isRead    Boolean  @default(false)
   type      String   @default("info")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([isRead])
@@ -374,14 +353,31 @@ model Notification {
 model UserTask {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @db.Uuid
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
-  status    String   // "Completed" | "In Progress" | "Upcoming"
+  status    String
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, title])
   @@index([userId])
 }
 
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+}
+
+enum DocumentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}

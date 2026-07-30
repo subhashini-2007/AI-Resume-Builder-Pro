@@ -228,29 +228,27 @@ export class ResumeService {
       status,
     } = data;
 
-    return prisma.$transaction(async (tx) => {
-      // 1. Verify ownership
-      const existing = await tx.resume.findFirst({
-        where: { id, userId, deletedAt: null },
-      });
+    // 1. Verify ownership
+    const existing = await prisma.resume.findFirst({
+      where: { id, userId, deletedAt: null },
+    });
 
-      if (!existing) {
-        throw new Error("Resume not found or access denied.");
-      }
+    if (!existing) {
+      throw new Error("Resume not found or access denied.");
+    }
 
-      // 2. Clear old relational records
-      await tx.experience.deleteMany({ where: { resumeId: id } });
-      await tx.education.deleteMany({ where: { resumeId: id } });
-      await tx.skill.deleteMany({ where: { resumeId: id } });
-      await tx.project.deleteMany({ where: { resumeId: id } });
-      await tx.certification.deleteMany({ where: { resumeId: id } });
-      await tx.language.deleteMany({ where: { resumeId: id } });
-      await tx.award.deleteMany({ where: { resumeId: id } });
-      await tx.interest.deleteMany({ where: { resumeId: id } });
-      await tx.reference.deleteMany({ where: { resumeId: id } });
-
-      // 3. Update main record and write new child arrays
-      return tx.resume.update({
+    // 2. Run delete and update in a sequential batch transaction
+    const [, , , , , , , , , updatedResume] = await prisma.$transaction([
+      prisma.experience.deleteMany({ where: { resumeId: id } }),
+      prisma.education.deleteMany({ where: { resumeId: id } }),
+      prisma.skill.deleteMany({ where: { resumeId: id } }),
+      prisma.project.deleteMany({ where: { resumeId: id } }),
+      prisma.certification.deleteMany({ where: { resumeId: id } }),
+      prisma.language.deleteMany({ where: { resumeId: id } }),
+      prisma.award.deleteMany({ where: { resumeId: id } }),
+      prisma.interest.deleteMany({ where: { resumeId: id } }),
+      prisma.reference.deleteMany({ where: { resumeId: id } }),
+      prisma.resume.update({
         where: { id },
         data: {
           title,
@@ -298,42 +296,39 @@ export class ResumeService {
               school: edu.school,
               degree: edu.degree,
               fieldOfStudy: edu.fieldOfStudy,
+              grade: edu.grade,
               startDate: edu.startDate,
               endDate: edu.endDate,
-              grade: edu.grade,
-              description: edu.description,
               order: edu.order,
             })),
           },
           skills: {
             create: skills.map((s: SkillInput) => ({
               name: s.name,
-              level: s.level,
-              category: s.category,
               order: s.order,
             })),
           },
           projects: {
-            create: projects.map((proj: ProjectInput) => ({
-              name: proj.name,
-              description: proj.description,
-              role: proj.role || "",
-              url: proj.url || "",
-              startDate: proj.startDate || "",
-              endDate: proj.endDate || "",
-              projectType: proj.projectType || "Personal",
-              duration: proj.duration || "",
-              technologies: proj.technologies || "",
-              responsibilities: proj.responsibilities || "",
-              keyFeatures: proj.keyFeatures || [],
-              achievements: proj.achievements || [],
-              githubUrl: proj.githubUrl || "",
-              liveUrl: proj.liveUrl || "",
-              documentationUrl: proj.documentationUrl || "",
-              teamSize: proj.teamSize || "",
-              clientName: proj.clientName || "",
-              status: proj.status || "Completed",
-              order: proj.order || 0,
+            create: projects.map((p: ProjectInput) => ({
+              name: p.name,
+              description: p.description,
+              role: p.role,
+              url: p.url,
+              startDate: p.startDate,
+              endDate: p.endDate,
+              projectType: p.projectType,
+              duration: p.duration,
+              technologies: p.technologies,
+              responsibilities: p.responsibilities,
+              keyFeatures: p.keyFeatures,
+              achievements: p.achievements,
+              githubUrl: p.githubUrl,
+              liveUrl: p.liveUrl,
+              documentationUrl: p.documentationUrl,
+              teamSize: p.teamSize,
+              clientName: p.clientName,
+              status: p.status,
+              order: p.order,
             })),
           },
           certifications: {
@@ -347,35 +342,35 @@ export class ResumeService {
             })),
           },
           languages: {
-            create: languages.map((lang: LanguageInput) => ({
-              name: lang.name,
-              proficiency: lang.proficiency,
-              order: lang.order,
+            create: languages.map((l: LanguageInput) => ({
+              name: l.name,
+              proficiency: l.proficiency,
+              order: l.order,
             })),
           },
           awards: {
-            create: awards.map((aw: AwardInput) => ({
-              title: aw.title,
-              issuer: aw.issuer,
-              date: aw.date,
-              description: aw.description,
-              order: aw.order,
+            create: awards.map((a: AwardInput) => ({
+              title: a.title,
+              issuer: a.issuer,
+              date: a.date,
+              description: a.description,
+              order: a.order,
             })),
           },
           interests: {
-            create: interests.map((int: InterestInput) => ({
-              name: int.name,
-              order: int.order,
+            create: interests.map((i: InterestInput) => ({
+              name: i.name,
+              order: i.order,
             })),
           },
           references: {
-            create: references.map((ref: ReferenceInput) => ({
-              name: ref.name,
-              title: ref.title,
-              company: ref.company,
-              email: ref.email,
-              phone: ref.phone,
-              order: ref.order,
+            create: references.map((r: ReferenceInput) => ({
+              name: r.name,
+              title: r.title,
+              company: r.company,
+              email: r.email,
+              phone: r.phone,
+              order: r.order,
             })),
           },
         },
@@ -390,8 +385,10 @@ export class ResumeService {
           interests: true,
           references: true,
         },
-      });
-    });
+      }),
+    ]);
+
+    return updatedResume;
   }
 
   static async softDelete(id: string, userId: string) {
