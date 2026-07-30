@@ -85,7 +85,7 @@ export default function InterviewPrepPage() {
     fetchResumes();
   }, []);
 
-  const handleGenerateQuestions = async (_mode: "standard" | "mock" | "random" = "standard") => {
+  const handleGenerateQuestions = async () => {
     if (!selectedResumeId) {
       toast({
         title: "Select Resume",
@@ -384,7 +384,7 @@ Tips: ${q.tips}
               {/* Quick Actions */}
               <div className="space-y-2 pt-2 border-t border-border/20">
                 <Button
-                  onClick={() => handleGenerateQuestions("standard")}
+                  onClick={() => handleGenerateQuestions()}
                   className="w-full flex items-center justify-center gap-1.5"
                   disabled={isGenerating || savedResumes.length === 0}
                 >
@@ -405,7 +405,7 @@ Tips: ${q.tips}
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleGenerateQuestions("mock")}
+                    onClick={() => handleGenerateQuestions()}
                     disabled={isGenerating || questions.length === 0}
                     className="text-xs"
                   >
@@ -414,7 +414,7 @@ Tips: ${q.tips}
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleGenerateQuestions("random")}
+                    onClick={() => handleGenerateQuestions()}
                     disabled={isGenerating || questions.length === 0}
                     className="text-xs"
                   >

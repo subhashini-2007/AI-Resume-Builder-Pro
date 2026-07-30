@@ -37,7 +37,7 @@ export const authService = {
       }
       const data = await res.json();
       if (!data.success) {
-        return { success: false, error: data.error || "Invalid email or password." };
+        return { success: false, error: data.message || data.error || (Array.isArray(data.errors) ? data.errors[0] : "") || "Invalid email or password." };
       }
       localStorage.setItem("auth_user", JSON.stringify(data.data));
       return { success: true };
@@ -71,7 +71,7 @@ export const authService = {
       }
       const data = await res.json();
       if (!data.success) {
-        return { success: false, error: data.error || "Registration failed." };
+        return { success: false, error: data.message || data.error || (Array.isArray(data.errors) ? data.errors[0] : "") || "Registration failed." };
       }
       localStorage.setItem("auth_user", JSON.stringify(data.data));
       return { success: true };

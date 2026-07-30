@@ -8,10 +8,16 @@ export function handleApiError(error: unknown) {
   if (error instanceof ZodError) {
     const fieldErrors = error.flatten().fieldErrors;
     console.warn("[Validation Status] Failed:", JSON.stringify(fieldErrors));
+    const firstIssue = error.issues[0];
+    const userFriendlyMessage = firstIssue
+      ? firstIssue.message
+      : "Validation Error";
     return NextResponse.json(
       {
         success: false,
-        error: "Validation Error",
+        message: userFriendlyMessage,
+        error: userFriendlyMessage,
+        errors: Object.values(fieldErrors).flat(),
         details: fieldErrors,
       },
       { status: 400 }
@@ -38,33 +44,29 @@ export function handleApiError(error: unknown) {
   } else if (rawMessage.startsWith("Unauthorized") || rawMessage.toLowerCase().includes("credentials")) {
     console.warn("[Auth Error]:", rawMessage);
     status = 401;
-    errorSummary = "Authentication Required";
-  } else if (rawMessage.toLowerCase().includes("not found")) {
-    status = 404;
-    errorSummary = "Resource Not Found";
-  } else if (
-    rawMessage.toLowerCase().includes("already exists") ||
-    rawMessage.toLowerCase().includes("invalid") ||
-    rawMessage.toLowerCase().includes("validation")
-  ) {
+    errorSummary = rawMessage;
+  } else {
     status = 400;
-    errorSummary = "Invalid Request";
+    errorSummary = rawMessage;
   }
 
   return NextResponse.json(
     {
       success: false,
+      message: errorSummary,
       error: errorSummary,
+      errors: [details || errorSummary],
       details: details || rawMessage,
     },
     { status }
   );
 }
 
-export function handleApiSuccess<T>(data: T, status = 200) {
+export function handleApiSuccess<T>(data: T, status = 200, message = "Success") {
   return NextResponse.json(
     {
       success: true,
+      message,
       data,
     },
     { status }

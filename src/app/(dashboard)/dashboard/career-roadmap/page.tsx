@@ -40,7 +40,7 @@ interface RoadmapEducationItem {
 interface RoadmapResumeItem {
   id: string;
   title: string;
-  fullName?: string;
+  fullName: string;
   skills?: RoadmapSkillItem[];
   educations?: RoadmapEducationItem[];
 }
@@ -121,7 +121,7 @@ export default function CareerRoadmapPage() {
       const json = await res.json();
       if (json.success && json.data) {
         // Build timeline steps based on output
-        setRoadmapSteps(getMockRoadmapData(dreamRole, dreamCompany, currentSemester));
+        setRoadmapSteps(getMockRoadmapData(dreamRole, dreamCompany));
         setSalaryExpectation(dreamCompany.toLowerCase().includes("google") || dreamCompany.toLowerCase().includes("meta") ? "$120,000 - $140,000 / year (or ₹18-24 LPA)" : "Market Competitive Placement Package");
         setCareerPaths([dreamRole, "Full Stack Web Architect", "Technical Team Lead"]);
         toast({
@@ -135,7 +135,7 @@ export default function CareerRoadmapPage() {
     } catch (err) {
       console.error(err);
       // Fallback roadmap
-      setRoadmapSteps(getMockRoadmapData(dreamRole, dreamCompany, currentSemester));
+      setRoadmapSteps(getMockRoadmapData(dreamRole, dreamCompany));
       setSalaryExpectation("₹8,000 - ₹12,000 / Month (Internship) or ₹8 - ₹12 LPA (FTE)");
       setCareerPaths([dreamRole, "Associate Software Engineer", "Systems Analyst"]);
       toast({
@@ -148,7 +148,7 @@ export default function CareerRoadmapPage() {
     }
   };
 
-  const getMockRoadmapData = (role: string, company: string, _sem: string): RoadmapStep[] => {
+  const getMockRoadmapData = (role: string, company: string): RoadmapStep[] => {
     return [
       {
         title: "Core Skill Mastery & Codebase Contributions",

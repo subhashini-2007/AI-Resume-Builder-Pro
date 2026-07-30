@@ -13,10 +13,10 @@ export const paginationQuerySchema = z.object({
 // Authentication Schemas
 export const registerSchema = z
   .object({
-    email: z.string().email("Invalid email format"),
+    email: z.string().trim().email("Invalid email format"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(6, "Confirm password is required"),
-    name: z.string().min(2, "Name must be at least 2 characters"),
+    name: z.string().trim().min(2, "Name must be at least 2 characters"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -24,7 +24,7 @@ export const registerSchema = z
   });
 
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email format"),
+  email: z.string().trim().email("Invalid email format"),
   password: z.string().min(1, "Password is required"),
 });
 
