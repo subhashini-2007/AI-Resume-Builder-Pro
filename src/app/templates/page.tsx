@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, Check, X, Sparkles, LogIn } from "lucide-react";
+import { Eye, Check, X, Sparkles } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/shared/navbar";
@@ -194,19 +194,12 @@ export default function PublicTemplatesPage() {
             </p>
             <div className="mt-4 flex items-center gap-3">
               <Link
-                href="/login"
+                href="/dashboard"
                 className="text-sm font-medium text-primary underline-offset-4 hover:underline"
               >
-                Sign in
+                Go to Dashboard
               </Link>
-              <span className="text-muted-foreground/50">·</span>
-              <Link
-                href="/register"
-                className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-              >
-                Create a free account
-              </Link>
-              <span className="text-muted-foreground/50">to save & use templates</span>
+              <span className="text-muted-foreground/50">to start creating resumes</span>
             </div>
           </div>
 
@@ -337,8 +330,7 @@ export default function PublicTemplatesPage() {
                 <Button variant="outline" size="sm" onClick={() => setPreviewTemplate(null)}>
                   Close
                 </Button>
-                {authService.isAuthenticated() ? (
-                  <Button
+                 <Button
                     size="sm"
                     onClick={() => {
                       localStorage.setItem("resume_selected_template", previewTemplate.id);
@@ -351,21 +343,6 @@ export default function PublicTemplatesPage() {
                     <Sparkles className="h-4 w-4" />
                     Create Resume with This Template
                   </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      localStorage.setItem("resume_selected_template", previewTemplate.id);
-                      setActiveTemplateId(previewTemplate.id);
-                      setPreviewTemplate(null);
-                      router.push(`/login?redirect=/dashboard/resumes/create`);
-                    }}
-                    className="gap-1.5"
-                  >
-                    <LogIn className="h-4 w-4" />
-                    Sign In to Use Template
-                  </Button>
-                )}
               </div>
             </div>
           </div>

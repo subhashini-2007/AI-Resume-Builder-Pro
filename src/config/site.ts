@@ -1,12 +1,12 @@
 export const siteConfig = {
   name: "AI Resume Builder Pro",
   description:
-    "Create professional, ATS-optimized, and visually stunning resumes in minutes with the power of AI.",
+    "AI-powered Resume Builder, ATS Checker, Cover Letter Generator and Career Assistant.",
   url: process.env.NEXT_PUBLIC_APP_URL || "https://ai-resume-builder-pro.vercel.app",
-  ogImage: "https://ai-resume-builder-pro.vercel.app/og.png",
+  ogImage: "/og-image.png",
   links: {
     twitter: "https://twitter.com/airesumebuilder",
-    github: "https://github.com/airesumebuilder/pro",
+    github: "https://github.com/subhashini-2007/AI-Resume-Builder-Pro",
   },
   keywords: [
     "AI Resume Builder",

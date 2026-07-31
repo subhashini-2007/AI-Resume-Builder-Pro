@@ -69,7 +69,7 @@ export function Navbar() {
               <Button
                 variant="outline"
                 className="hidden sm:inline-flex"
-                onClick={() => router.push("/login")}
+                onClick={() => router.push("/dashboard")}
               >
                 Sign In
               </Button>

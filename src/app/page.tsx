@@ -111,7 +111,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   className="group flex items-center gap-2"
-                  onClick={() => router.push("/login")}
+                  onClick={() => router.push("/dashboard")}
                 >
                   Get Started
                   <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

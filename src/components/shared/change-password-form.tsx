@@ -101,22 +101,14 @@ export function ChangePasswordForm() {
 
       setIsSuccess(true);
 
-      // Force Logout cleanup on client
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("auth_user");
-        localStorage.clear();
-        sessionStorage.clear();
-        document.cookie = "session_token=; path=/; max-age=0; SameSite=Lax";
-      }
-
       toast({
         title: "Password Updated",
-        description: "Your password has been changed. Please sign in again.",
+        description: "Your password has been changed successfully.",
         variant: "success",
       });
 
       setTimeout(() => {
-        router.push("/login");
+        router.push("/dashboard");
       }, 1500);
     } catch {
       setError("root", { message: "Network error occurred. Please try again." });

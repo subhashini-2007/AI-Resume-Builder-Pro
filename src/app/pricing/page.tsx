@@ -139,7 +139,7 @@ export default function PricingPage() {
                     variant={plan.popular ? "default" : "outline"}
                     onClick={() => {
                       if (plan.name !== "Enterprise") {
-                        window.location.href = "/login";
+                        window.location.href = "/dashboard";
                       } else {
                         window.location.href = "/contact";
                       }
