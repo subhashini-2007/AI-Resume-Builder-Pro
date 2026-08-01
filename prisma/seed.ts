@@ -91,12 +91,15 @@ async function main() {
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash("password123", salt);
 
+  const DEMO_USER_ID = "00000000-0000-0000-0000-000000000000";
+
   const defaultUser = await prisma.user.upsert({
-    where: { email: "subhashini@resumebuilder.pro" },
+    where: { id: DEMO_USER_ID },
     update: {
       passwordHash,
     },
     create: {
+      id: DEMO_USER_ID,
       email: "subhashini@resumebuilder.pro",
       passwordHash,
       name: "Subhashini",
