@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { handleApiError, handleApiSuccess, getSessionUser } from "@/lib/api-response";
 import { paginationQuerySchema } from "@/lib/validation/schemas";
 import { ResumeService } from "@/services/db/resume";
