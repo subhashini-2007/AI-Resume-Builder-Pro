@@ -190,7 +190,7 @@ export default function PublicTemplatesPage() {
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Choose from our library of designer and ATS-tested formats. Preview any template
-              instantly — no login required.
+              instantly — no account required.
             </p>
             <div className="mt-4 flex items-center gap-3">
               <Link

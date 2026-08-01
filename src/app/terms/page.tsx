@@ -38,7 +38,7 @@ export default function TermsOfServicePage() {
                   2. User Account Responsibilities
                 </h3>
                 <p>
-                  You are responsible for safeguarding your login keys and session files. You agree
+                  You are responsible for safeguarding your credentials and session files. You agree
                   to provide accurate, up-to-date professional profile info during CV compilation.
                 </p>
               </section>

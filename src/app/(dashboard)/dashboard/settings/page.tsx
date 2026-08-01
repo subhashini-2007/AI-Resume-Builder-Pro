@@ -234,7 +234,7 @@ export default function SettingsPage() {
             </div>
             <CardDescription>
               Update your password below. After a successful change you will be signed out and
-              redirected to the login page.
+              redirected to the home page.
             </CardDescription>
           </CardHeader>
           <CardContent>

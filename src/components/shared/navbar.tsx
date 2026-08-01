@@ -5,19 +5,11 @@ import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { publicNavItems } from "@/config/navigation";
-import { authService } from "@/services/auth";
-import { useMounted } from "@/hooks/use-mounted";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
 export function Navbar() {
   const router = useRouter();
-  const mounted = useMounted();
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsLoggedIn(authService.isAuthenticated());
-  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
@@ -51,31 +43,16 @@ export function Navbar() {
         {/* Header Actions */}
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          {mounted && isLoggedIn ? (
-            <>
-              <Button
-                variant="outline"
-                className="hidden sm:inline-flex"
-                onClick={() => router.push("/dashboard")}
-              >
-                Dashboard
-              </Button>
-              <Button onClick={() => router.push("/dashboard/resumes/create")}>
-                Create Resume
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                variant="outline"
-                className="hidden sm:inline-flex"
-                onClick={() => router.push("/dashboard")}
-              >
-                Sign In
-              </Button>
-              <Button onClick={() => router.push("/register")}>Get Started</Button>
-            </>
-          )}
+          <Button
+            variant="outline"
+            className="hidden sm:inline-flex"
+            onClick={() => router.push("/dashboard")}
+          >
+            Dashboard
+          </Button>
+          <Button onClick={() => router.push("/dashboard/resumes/create")}>
+            Create Resume
+          </Button>
         </div>
       </div>
     </header>
