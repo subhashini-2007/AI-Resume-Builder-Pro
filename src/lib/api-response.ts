@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { verifyToken } from "@/lib/auth/jwt";
-import { prisma } from "@/lib/prisma";
 
 export function handleApiError(error: unknown) {
   console.error("[API ERR] Error encountered:", error);
@@ -39,6 +38,14 @@ export function handleApiError(error: unknown) {
 
 
   if (isPrismaError) {
+    const prismaErr = error as any;
+    console.error("=== PRISMA DATABASE EXCEPTION TRACE ===");
+    console.error("Prisma Error Code:", prismaErr?.code || "N/A");
+    console.error("Error Message:", prismaErr?.message || rawMessage);
+    console.error("Stack Trace:", prismaErr?.stack || "N/A");
+    console.error("Failed Query/Meta:", prismaErr?.meta ? JSON.stringify(prismaErr.meta) : "N/A");
+    console.error("======================================");
+
     console.error("[DB ERR] Prisma/Database failure:", rawMessage);
     errorSummary = "Database Connection Error";
     details = process.env.NODE_ENV === "production"
@@ -97,43 +104,19 @@ export async function getSessionUser(request: Request): Promise<string> {
     const cookieHeader = request.headers.get("cookie") || "";
     const tokenCookie = cookieHeader.split(";").find((c) => c.trim().startsWith("session_token="));
 
-    let userId = DEMO_USER_ID;
-    if (tokenCookie) {
-      const token = tokenCookie.split("=").slice(1).join("=");
-      const decoded = verifyToken(token);
-      if (decoded && decoded.userId) {
-        userId = decoded.userId;
-      }
+    if (!tokenCookie) {
+      return DEMO_USER_ID;
     }
 
-    // Ensure the user exists in the database to avoid foreign key violations on creation
-    const exists = await prisma.user.findFirst({ where: { id: userId, deletedAt: null } });
-    if (!exists && userId === DEMO_USER_ID) {
-      await prisma.user.create({
-        data: {
-          id: DEMO_USER_ID,
-          email: "demo@example.com",
-          passwordHash: "$2a$10$abcdefghijklmnopqrstuvwx", // dummy hash
-          name: "Demo User",
-          settings: {
-            create: {
-              theme: "system",
-              emailNotifications: true,
-            },
-          },
-          subscription: {
-            create: {
-              plan: "FREE",
-              status: "ACTIVE",
-            },
-          },
-        },
-      });
+    const token = tokenCookie.split("=").slice(1).join("=");
+    const decoded = verifyToken(token);
+
+    if (!decoded || !decoded.userId) {
+      return DEMO_USER_ID;
     }
 
-    return userId;
-  } catch (err) {
-    console.error("Error in getSessionUser:", err);
+    return decoded.userId;
+  } catch {
     return DEMO_USER_ID;
   }
 }
