@@ -40,8 +40,26 @@ export async function POST(request: NextRequest) {
     const userId = await getSessionUser(request);
     const draft = await ResumeService.createEmptyDraft(userId);
     return handleApiSuccess(draft, 201);
-  } catch (error) {
-    console.error("[API ERROR] Failed to create empty draft:", error);
+  } catch (error: any) {
+    console.error("=== DIAGNOSTIC RESUME CREATE ERROR ===");
+    console.error("Error Code:", error?.code || "N/A");
+    console.error("Error Message:", error?.message || "N/A");
+    console.error("Stack Trace:", error?.stack || "N/A");
+    console.error("Meta:", error?.meta ? JSON.stringify(error.meta) : "N/A");
+    console.error("======================================");
+
+    if (process.env.NODE_ENV === "development") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error?.message || "Failed to create empty draft",
+          code: error?.code,
+          meta: error?.meta,
+          stack: error?.stack,
+        },
+        { status: 500 }
+      );
+    }
     return handleApiError(error);
   }
 }
