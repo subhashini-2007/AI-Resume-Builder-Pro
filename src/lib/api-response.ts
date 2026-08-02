@@ -3,21 +3,6 @@ import { ZodError } from "zod";
 import { verifyToken } from "@/lib/auth/jwt";
 
 export function handleApiError(error: unknown) {
-  console.error("========== EARLY PRISMA EXCEPTION (handleApiError) ==========");
-  console.error("Prisma Error Code:", (error as any)?.code || "N/A");
-  if (error instanceof Error) {
-    console.error("MESSAGE:", error.message);
-    console.error("STACK:", error.stack);
-  }
-  console.error("META:", (error as any)?.meta ? JSON.stringify((error as any).meta) : "N/A");
-  console.error(
-    JSON.stringify(
-      error,
-      Object.getOwnPropertyNames(error),
-      2
-    )
-  );
-  console.error("=============================================================");
   console.error("[API ERR] Error encountered:", error);
 
   if (error instanceof ZodError) {

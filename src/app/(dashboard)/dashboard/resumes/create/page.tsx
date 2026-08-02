@@ -1747,28 +1747,6 @@ export default function CreateResumePage() {
             })}
           </div>
 
-          {/* AI Suggestions Panel */}
-          {computedSuggestions.length > 0 && (
-            <Card className="border-amber-500/30 bg-amber-500/5 shadow-sm">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
-                  <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" />
-                  AI Improvement Suggestions ({computedSuggestions.length})
-                </div>
-                <ul className="mt-1.5 list-disc list-inside space-y-1 text-[10px] text-amber-800/90 dark:text-amber-300/90 leading-relaxed pl-1">
-                  {computedSuggestions.slice(0, 3).map((s, idx) => (
-                    <li key={idx}>{s}</li>
-                  ))}
-                  {computedSuggestions.length > 3 && (
-                    <li className="list-none font-semibold text-[9px] text-muted-foreground mt-0.5">
-                      + {computedSuggestions.length - 3} more suggestions...
-                    </li>
-                  )}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Form Content */}
           <div className="min-h-[300px] flex-1">
             {/* Tab 1: Personal Details */}

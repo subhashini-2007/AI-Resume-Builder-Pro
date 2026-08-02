@@ -31,23 +31,6 @@ export async function GET(request: NextRequest) {
 
     return handleApiSuccess(result);
   } catch (error) {
-    console.error("========== FULL PRISMA ERROR ==========");
-    console.error(error);
-
-    if (error instanceof Error) {
-      console.error("MESSAGE:", error.message);
-      console.error("STACK:", error.stack);
-    }
-
-    console.error(
-      JSON.stringify(
-        error,
-        Object.getOwnPropertyNames(error),
-        2
-      )
-    );
-
-    console.error("=======================================");
     return handleApiError(error);
   }
 }
@@ -58,23 +41,12 @@ export async function POST(request: NextRequest) {
     const draft = await ResumeService.createEmptyDraft(userId);
     return handleApiSuccess(draft, 201);
   } catch (error: any) {
-    console.error("========== FULL PRISMA ERROR ==========");
-    console.error(error);
-
-    if (error instanceof Error) {
-      console.error("MESSAGE:", error.message);
-      console.error("STACK:", error.stack);
-    }
-
-    console.error(
-      JSON.stringify(
-        error,
-        Object.getOwnPropertyNames(error),
-        2
-      )
-    );
-
-    console.error("=======================================");
+    console.error("=== DIAGNOSTIC RESUME CREATE ERROR ===");
+    console.error("Error Code:", error?.code || "N/A");
+    console.error("Error Message:", error?.message || "N/A");
+    console.error("Stack Trace:", error?.stack || "N/A");
+    console.error("Meta:", error?.meta ? JSON.stringify(error.meta) : "N/A");
+    console.error("======================================");
 
     if (process.env.NODE_ENV === "development") {
       return NextResponse.json(
